@@ -1,8 +1,10 @@
 defmodule PlugLoadBalancerTest do
   use ExUnit.Case
-  doctest PlugLoadBalancer
 
-  test "the truth" do
-    assert 1 + 1 == 2
+  test "application is running" do
+    applications =
+      Application.started_applications
+      |> Enum.map(&elem(&1, 0))
+    assert :plug_load_balancer in applications
   end
 end
