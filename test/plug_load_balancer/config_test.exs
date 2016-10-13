@@ -4,19 +4,25 @@ defmodule PlugLoadBalancer.ConfigTest do
   alias PlugLoadBalancer.Config
   alias PlugLoadBalancer.Config.Rule
 
-  defmodule Test.Plug do
-    @behaviour Plug
-    def init(opts), do: opts
-    def call(conn, _opts), do: conn
-  end
-
   describe "PlugLoadBalancer.Config" do
-    test "routes/1 defaults to empty" do
-      config = Config.new
-      assert Config.routes(config) == []
+    test "start_link registers name", context do
+      assert {:ok, pid} = Config.start_link(context.test)
+      assert ^pid = Process.whereis(context.test)
     end
 
-    test "routes/1" do
+    test "start_link takes initial rules", context do
+      rule = Rule.new(plug: Test.Plug)
+      assert {:ok, _} = Config.start_link(context.test, rules: [rule])
+      assert [route] = Config.routes(context.test)
+      assert_cowboy_route(route, {:_, :_, Test.Plug, []})
+    end
+
+    test "routes/1 defaults to empty", context do
+      assert {:ok, pid} = Config.start_link(context.test)
+      assert [] == Config.routes(pid)
+    end
+
+    test "routes/1", context do
       rules = [
         Rule.new(host: "nopath.example.org", plug: Test.Plug, plug_opts: []),
         Rule.new(path: "/nohost", plug: Test.Plug, plug_opts: []),
@@ -26,12 +32,12 @@ defmodule PlugLoadBalancer.ConfigTest do
           plug: Test.Plug,
           plug_opts: [origin: "http://localhost:81"]),
       ]
-      config = Config.new(rules: rules)
-      routes = Config.routes(config)
-
-      assert_cowboy_route(Enum.at(routes, 0), {"nopath.example.org", '_', Test.Plug, []})
-      assert_cowboy_route(Enum.at(routes, 1), {'_', '/nohost', Test.Plug, []})
-      assert_cowboy_route(Enum.at(routes, 2), {"example.com", "/test", Test.Plug, [origin: "http://localhost:81"]})
+      assert {:ok, config} = Config.start_link(context.test, rules: rules)
+      assert [a, b, c] = Config.routes(config)
+      assert_cowboy_route(a, {"nopath.example.org", ~c"_", Test.Plug, []})
+      assert_cowboy_route(b, {~c"_", ~c"/nohost", Test.Plug, []})
+      assert_cowboy_route(c, {"example.com", "/test", Test.Plug,
+                              [origin: "http://localhost:81"]})
     end
   end
 
@@ -46,6 +52,10 @@ defmodule PlugLoadBalancer.ConfigTest do
   end
 
   defp assert_cowboy_route(route, {host, path, plug, plug_opts}) do
-    assert route == {to_char_list(host), [{to_char_list(path), Plug.Adapters.Cowboy.Handler, {plug, plug_opts}}]}
+    assert route == {to_char_list(host),
+                     [{to_char_list(path),
+                       Plug.Adapters.Cowboy.Handler,
+                       {plug, plug_opts}}]}
   end
+
 end
