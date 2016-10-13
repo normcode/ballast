@@ -5,7 +5,7 @@ defmodule PlugLoadBalancer.Config do
   defstruct [table: nil, rules: []]
 
   defp new(opts) do
-    struct(__MODULE__, opts)
+    struct!(__MODULE__, opts)
   end
 
   def routes(config) do
@@ -13,8 +13,16 @@ defmodule PlugLoadBalancer.Config do
   end
 
   def start_link(name, opts \\ []) when is_atom(name) do
-    rules = Keyword.get(opts, :rules, [])
+    user_rules = Keyword.get(opts, :rules, [])
+    rules = create_rules(user_rules)
     GenServer.start_link(__MODULE__, {name, rules}, name: name)
+  end
+
+  defp create_rules(rules) do
+    Enum.map(rules, fn rule ->
+      {plug, plug_opts} = rule[:plug]
+      Rule.new(host: rule[:host], path: rule[:path], plug: plug, plug_opts: plug_opts)
+    end)
   end
 
   def init({table_name, rules}) do

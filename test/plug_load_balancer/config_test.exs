@@ -10,34 +10,36 @@ defmodule PlugLoadBalancer.ConfigTest do
       assert ^pid = Process.whereis(context.test)
     end
 
-    test "start_link takes initial rules", context do
-      rule = Rule.new(plug: Test.Plug)
-      assert {:ok, _} = Config.start_link(context.test, rules: [rule])
-      assert [route] = Config.routes(context.test)
-      assert_cowboy_route(route, {:_, :_, Test.Plug, []})
-    end
-
     test "routes/1 defaults to empty", context do
       assert {:ok, pid} = Config.start_link(context.test)
       assert [] == Config.routes(pid)
     end
 
-    test "routes/1", context do
-      rules = [
-        Rule.new(host: "nopath.example.org", plug: Test.Plug, plug_opts: []),
-        Rule.new(path: "/nohost", plug: Test.Plug, plug_opts: []),
-        Rule.new(
-          host: "example.com",
-          path: "/test",
-          plug: Test.Plug,
-          plug_opts: [origin: "http://localhost:81"]),
-      ]
+    test "with Plug", context do
+      rules = [[host: "no.path.example.org", plug: {Test.Plug, []}],
+               [path: "/no-host", plug: {Test.Plug, []}],
+               [host: "example.org", path: "/test", plug: {Test.Plug, [option: :foo]}],
+              ]
       assert {:ok, config} = Config.start_link(context.test, rules: rules)
       assert [a, b, c] = Config.routes(config)
-      assert_cowboy_route(a, {"nopath.example.org", ~c"_", Test.Plug, []})
-      assert_cowboy_route(b, {~c"_", ~c"/nohost", Test.Plug, []})
-      assert_cowboy_route(c, {"example.com", "/test", Test.Plug,
-                              [origin: "http://localhost:81"]})
+      assert_cowboy_route(a, {~c"no.path.example.org", :_, Test.Plug, []})
+      assert_cowboy_route(b, {:_, ~c"/no-host", Test.Plug, []})
+      assert_cowboy_route(c, {~c"example.org", ~c"/test", Test.Plug,
+                              [option: :foo]})
+    end
+
+    defmodule InitializingPlug do
+      @behaviour Plug
+      def init(opts), do: {:opts, opts}
+      def call(conn, _opts), do: conn
+    end
+
+    test "initial state is computed", context do
+        rules = [[host: "example.org", plug: {InitializingPlug, [foo: :bar]}]]
+        assert {:ok, config} = Config.start_link(context.test, rules: rules)
+        assert [a] = Config.routes(config)
+        assert_cowboy_route(a, {~c"example.org", :_,
+                                InitializingPlug, {:opts, [foo: :bar]}})
     end
   end
 
@@ -52,8 +54,8 @@ defmodule PlugLoadBalancer.ConfigTest do
   end
 
   defp assert_cowboy_route(route, {host, path, plug, plug_opts}) do
-    assert route == {to_char_list(host),
-                     [{to_char_list(path),
+    assert route == {host,
+                     [{path,
                        Plug.Adapters.Cowboy.Handler,
                        {plug, plug_opts}}]}
   end
