@@ -23,5 +23,6 @@ defmodule PlugLoadBalancer.Config.Rule do
   end
 
   defp to_char_route(nil), do: :_
+  defp to_char_route(:_), do: :_
   defp to_char_route(s), do: to_char_list(s)
 end

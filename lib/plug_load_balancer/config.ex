@@ -13,16 +13,21 @@ defmodule PlugLoadBalancer.Config do
   end
 
   def start_link(name, opts \\ []) when is_atom(name) do
-    user_rules = Keyword.get(opts, :rules, [])
-    rules = create_rules(user_rules)
+    rules =
+      opts
+      |> Keyword.get(:rules, [])
+      |> Enum.map(&create_rule/1)
     GenServer.start_link(__MODULE__, {name, rules}, name: name)
   end
 
-  defp create_rules(rules) do
-    Enum.map(rules, fn rule ->
-      {plug, plug_opts} = rule[:plug]
-      Rule.new(host: rule[:host], path: rule[:path], plug: plug, plug_opts: plug_opts)
+  defp create_rule(rule) do
+    attrs = Enum.reduce(rule, [], fn (e, acc) ->
+      case e do
+        {:plug, {plug, plug_opts}} -> Enum.into([{:plug, plug}, {:plug_opts, plug_opts}], acc)
+        {key, value} -> [{key, value} | acc]
+      end
     end)
+    Rule.new(attrs)
   end
 
   def init({table_name, rules}) do
