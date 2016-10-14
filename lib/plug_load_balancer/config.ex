@@ -21,13 +21,15 @@ defmodule PlugLoadBalancer.Config do
   end
 
   defp create_rule(rule) do
-    attrs = Enum.reduce(rule, [], fn (e, acc) ->
+    rule
+    |> Enum.map(fn e ->
       case e do
-        {:plug, {plug, plug_opts}} -> Enum.into([{:plug, plug}, {:plug_opts, plug_opts}], acc)
-        {key, value} -> [{key, value} | acc]
+        {:plug, {plug, plug_opts}} -> [{:plug, plug}, {:plug_opts, plug_opts}]
+        {key, value} -> {key, value}
       end
     end)
-    Rule.new(attrs)
+    |> List.flatten()
+    |> Rule.new()
   end
 
   def init({table_name, rules}) do
