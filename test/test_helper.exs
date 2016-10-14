@@ -4,5 +4,4 @@ defmodule Test.Plug do
   def call(conn, _opts), do: conn
 end
 
-ExUnit.configure(exclude: [skip: true])
 ExUnit.start()
