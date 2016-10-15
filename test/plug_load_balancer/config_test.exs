@@ -41,6 +41,13 @@ defmodule PlugLoadBalancer.ConfigTest do
         assert_cowboy_route(a, {~c"example.org", :_,
                                 InitializingPlug, {:opts, [foo: :bar]}})
     end
+
+    test "update/2", context do
+      {:ok, config} = Config.start_link(context.test, rules: [])
+      :ok = Config.update(config, rules: [[host: "example.net", path: "/test", plug: {TestPlug, []}]])
+      assert [a] = Config.routes(config)
+      assert_cowboy_route(a, {~c"example.net", ~c"/test", TestPlug, []}) 
+    end
   end
 
   describe "PlugLoadBalancer.Config.Rule" do
