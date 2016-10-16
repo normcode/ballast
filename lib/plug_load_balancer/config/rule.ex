@@ -8,7 +8,6 @@ defmodule PlugLoadBalancer.Config.Rule do
   @default_plug PlugLoadBalancer.Plug.Default
   @default_opts []
 
-
   def new(opts \\ []) do
     host      = Keyword.get(opts, :host, @default_host)
     path      = Keyword.get(opts, :path, @default_path)
