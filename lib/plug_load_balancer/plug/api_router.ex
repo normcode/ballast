@@ -20,17 +20,11 @@ defmodule PlugLoadBalancer.Plug.ApiRouter do
     Plug.Adapters.Cowboy.child_spec(scheme, __MODULE__, plug_opts, cowboy_opts)
   end
 
-  def init(opts) do
-    fetch_routes_opts = PlugLoadBalancer.Plug.Api.FetchRoutes.init(opts)
-    opts
-    |> Keyword.put(:fetch_routes_opts, fetch_routes_opts)
-    |> super()
-  end
+  def init(opts), do: opts
 
   def call(conn, opts) do
-    fetch_routes_opts = Keyword.get(opts, :fetch_routes_opts, nil)
     conn
-    |> PlugLoadBalancer.Plug.Api.FetchRoutes.call(fetch_routes_opts)
+    |> PlugLoadBalancer.Plug.Api.FetchRoutes.call(opts)
     |> super(opts)
   end
 

@@ -15,11 +15,7 @@ defmodule PlugLoadBalancer.Plug.ApiRouterTest do
         [],
         [port: 5000,
          dispatch: [
-           {:_, [], [{:_, [], Plug.Adapters.Cowboy.Handler, {ApiRouter, [
-                                                                fetch_routes_opts: @default_config_name,
-                                                                config: @default_config_name
-                                                              ]}}]}
-         ]]
+           {:_, [], [{:_, [], Plug.Adapters.Cowboy.Handler, {ApiRouter, [config: @default_config_name]}}]}]]
       )
       assert expected == child_spec
     end
