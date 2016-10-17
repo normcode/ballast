@@ -18,14 +18,20 @@ defmodule PlugLoadBalancer.ConfigTest do
     test "with Plug", context do
       rules = [[host: "no.path.example.org", plug: {Test.Plug, []}],
                [path: "/no-host", plug: {Test.Plug, []}],
-               [host: "example.org", path: "/test", plug: {Test.Plug, [option: :foo]}],
-              ]
+               [host: "example.org", path: "/test", plug: {Test.Plug, [option: :foo]}]]
       assert {:ok, config} = Config.start_link(context.test, rules: rules)
       assert [a, b, c] = Config.routes(config)
       assert_cowboy_route(a, {~c"no.path.example.org", :_, Test.Plug, []})
       assert_cowboy_route(b, {:_, ~c"/no-host", Test.Plug, []})
       assert_cowboy_route(c, {~c"example.org", ~c"/test", Test.Plug,
                               [option: :foo]})
+    end
+
+    test "rules/1", context do
+      rules = [[host: "example.org", plug: {Test.Plug, [option: :foo]}]]
+      assert {:ok, _pid} = Config.start_link(context.test, rules: rules)
+      assert [a] = Config.rules(context.test)
+      assert a == Rule.new(host: "example.org", plug: Test.Plug, plug_opts: [option: :foo])
     end
 
     defmodule InitializingPlug do

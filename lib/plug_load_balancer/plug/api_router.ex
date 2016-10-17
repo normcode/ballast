@@ -24,12 +24,13 @@ defmodule PlugLoadBalancer.Plug.ApiRouter do
 
   def call(conn, opts) do
     conn
-    |> PlugLoadBalancer.Plug.Api.FetchRoutes.call(opts)
+    |> PlugLoadBalancer.Plug.Api.FetchRules.call(opts)
     |> super(opts)
   end
 
   get "/api/routes" do
-    response = inspect(conn.private.routes)
+    rules = conn.private.rules
+    response = Poison.encode!(rules)
     send_resp(conn, 200, response)
   end
 end

@@ -22,15 +22,23 @@ defmodule PlugLoadBalancer.Plug.ApiRouterTest do
   end
 
   describe "PlugLoadBalancer.ApiRouter" do
-    setup [:create_config]
-
-    test "GET /api/routes", %{config: config} do
+    test "GET /api/routes", ctx do
+      {:ok, config} = PlugLoadBalancer.Config.start_link(ctx.test, rules: [
+            [host: "example.org", plug: {TestPlug, []}],
+            [path: "/test", plug: {TestPlug, [foo: :bar]}],
+            [host: "example.com", path: "/test", plug: {TestPlug, []}]
+          ])
       plug = ApiRouter.init(config: config)
       conn =
         conn(:get, "/api/routes")
         |> ApiRouter.call(plug)
       assert conn.status == 200
-      assert conn.resp_body == "[]"
+      resp = Poison.decode!(conn.resp_body)
+      assert resp == [
+        %{"host" => "example.org"},
+        %{"path" => "/test"},
+        %{"host" => "example.com", "path" => "/test"}
+      ]
     end
   end
 

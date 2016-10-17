@@ -19,6 +19,7 @@ defmodule PlugLoadBalancer.Mixfile do
     [
       {:cowboy, "~> 1.0"},
       {:plug, "~> 1.2"},
+      {:poison, "~> 3.0"}
     ]
   end
 end

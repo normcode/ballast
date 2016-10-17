@@ -17,6 +17,10 @@ defmodule PlugLoadBalancer.Config do
     GenServer.call(config, {:update, opts})
   end
 
+  def rules(config) do
+    GenServer.call(config, :rules)
+  end
+
   defp new(opts) do
     struct!(__MODULE__, opts)
   end
@@ -35,6 +39,10 @@ defmodule PlugLoadBalancer.Config do
     rules = create_rules(args)
     state = %{state | rules: rules}
     {:reply, :ok, state}
+  end
+
+  def handle_call(:rules, _from, state = %__MODULE__{rules: rules}) do
+    {:reply, rules, state}
   end
 
   defp create_rules(args) do

@@ -1,5 +1,4 @@
 defmodule PlugLoadBalancer.Config.Rule do
-
   defstruct [:host, :path, :plug, :plug_opts]
 
   @cowboy_handler Plug.Adapters.Cowboy.Handler
@@ -24,4 +23,20 @@ defmodule PlugLoadBalancer.Config.Rule do
   defp to_char_route(nil), do: :_
   defp to_char_route(:_), do: :_
   defp to_char_route(s), do: to_char_list(s)
+end
+
+defimpl Poison.Encoder, for: PlugLoadBalancer.Config.Rule do
+  alias PlugLoadBalancer.Config.Rule
+
+  def encode(rule = %Rule{path: :_}, opts) do
+    Poison.Encoder.Map.encode(%{host: rule.host}, opts)
+  end
+
+  def encode(rule = %Rule{host: :_}, opts) do
+    Poison.Encoder.Map.encode(%{path: rule.path}, opts)
+  end
+
+  def encode(rule = %Rule{}, opts) do
+    Poison.Encoder.Map.encode(%{host: rule.host, path: rule.path}, opts)
+  end
 end
