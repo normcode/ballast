@@ -6,7 +6,7 @@ defmodule PlugLoadBalancer do
 
     children = [
       worker(PlugLoadBalancer.Config, config_args()),
-      # PlugLoadBalancer.Api.spec(...),
+      PlugLoadBalancer.Plug.ApiRouter.child_spec(api_args()),
       # PlugLoadBalancer.Proxy.spec(...),
       # supervisor(PlugLoadBalancer.HealthCheck, []),
     ]
@@ -18,5 +18,9 @@ defmodule PlugLoadBalancer do
   defp config_args do
     rules = Application.get_env(:plug_load_balancer, :routes, [])
     [PlugLoadBalancer.Config, [rules: rules]]
+  end
+
+  defp api_args do
+    Application.get_env(:plug_load_balancer, :api, [])
   end
 end
