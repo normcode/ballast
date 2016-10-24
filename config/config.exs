@@ -2,15 +2,8 @@
 # and its dependencies with the aid of the Mix.Config module.
 use Mix.Config
 
-defmodule TestPlug do
-  def init(opts), do: opts
-  def call(conn, _opts) do
-    Plug.Conn.send_resp(conn, 200, ["ok"])
-  end
-end
-
 config :plug_load_balancer, routes: [
-  [host: "example.org", plug: {TestPlug, []}]
+  [host: "example.org", plug: {PlugLoadBalancer.Plug.Proxy, [origin: "httpbin.org"]}]
 ]
 # This configuration is loaded before any dependency and is restricted
 # to this project. If another project depends on this project, this

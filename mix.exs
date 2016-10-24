@@ -11,7 +11,10 @@ defmodule PlugLoadBalancer.Mixfile do
   end
 
   def application do
-    [applications: [:logger, :cowboy, :plug],
+    [applications: [:logger,
+                    :cowboy,
+                    :plug,
+                    :httpotion],
      mod: {PlugLoadBalancer, []}]
   end
 
@@ -19,7 +22,9 @@ defmodule PlugLoadBalancer.Mixfile do
     [
       {:cowboy, "~> 1.0"},
       {:plug, "~> 1.2"},
-      {:poison, "~> 3.0"}
+      {:poison, "~> 3.0"},
+      {:bypass, "~> 0.5.1", only: :test},
+      {:httpotion, "~> 3.0"},
     ]
   end
 end

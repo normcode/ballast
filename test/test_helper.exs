@@ -5,4 +5,5 @@ defmodule Test.Plug do
   def call(conn, _opts), do: conn
 end
 
-ExUnit.start()
+ExUnit.start(capture_log: true)
+Application.ensure_all_started(:bypass)

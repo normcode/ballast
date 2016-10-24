@@ -7,11 +7,11 @@ defmodule PlugLoadBalancer do
     children = [
       worker(PlugLoadBalancer.Config, config_args()),
       PlugLoadBalancer.Plug.ApiRouter.child_spec(api_args()),
-      # PlugLoadBalancer.Proxy.spec(...),
+      PlugLoadBalancer.ProxyEndpoint.child_spec(proxy_args())
       # supervisor(PlugLoadBalancer.HealthCheck, []),
     ]
 
-    opts = [strategy: :one_for_one, name: PlugLoadBalancer.Supervisor]
+    opts = [strategy: :rest_for_one, name: PlugLoadBalancer.Supervisor]
     Supervisor.start_link(children, opts)
   end
 
@@ -22,5 +22,9 @@ defmodule PlugLoadBalancer do
 
   defp api_args do
     Application.get_env(:plug_load_balancer, :api, [])
+  end
+
+  defp proxy_args do
+    [config: PlugLoadBalancer.Config]
   end
 end
