@@ -23,8 +23,9 @@ defmodule PlugLoadBalancer.Mixfile do
       {:cowboy, "~> 1.0"},
       {:plug, "~> 1.2"},
       {:poison, "~> 3.0"},
-      {:bypass, "~> 0.5.1", only: :test},
       {:httpotion, "~> 3.0"},
+      {:bypass, "~> 0.5.1", only: :test},
+      {:mix_test_watch, "~> 0.2", only: :dev}
     ]
   end
 end
