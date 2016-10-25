@@ -2,11 +2,20 @@ defmodule PlugLoadBalancer.Config do
   use GenServer
   alias PlugLoadBalancer.Config.Rule
 
-  defstruct [table: nil, rules: []]
+  defstruct [table: nil,
+             rules: [],
+             listener: PlugLoadBalancer.ProxyEndpoint.HTTP,
+             manager: PlugLoadBalancer.ProxyEndpoint.Manager,
+             update_handler: {PlugLoadBalancer.ProxyUpdateHandler,
+                              [listener: PlugLoadBalancer.ProxyEndpoint.HTTP]}]
 
   def start_link(name, opts \\ []) do
     rules = create_rules(opts)
-    GenServer.start_link(__MODULE__, {name, rules}, name: name)
+    opts =
+      opts
+      |> Keyword.put(:rules, rules)
+      |> Keyword.put(:table, name)
+    GenServer.start_link(__MODULE__, opts, name: name)
   end
 
   def routes(config) do
@@ -21,23 +30,22 @@ defmodule PlugLoadBalancer.Config do
     GenServer.call(config, :rules)
   end
 
-  defp new(opts) do
-    struct!(__MODULE__, opts)
-  end
-
-  def init({table_name, rules}) do
-    state = new(table: table_name, rules: rules)
+  def init(opts) do
+    state = struct!(__MODULE__, opts)
+    {handler, args} = state.update_handler
+    :ok = GenEvent.add_mon_handler(state.manager, handler, args)
     {:ok, state}
   end
 
   def handle_call(:routes, _from, state) do
-    routes = Enum.map(state.rules, &Rule.to_route/1)
+    routes = create_routes(state.rules)
     {:reply, routes, state}
   end
 
   def handle_call({:update, args}, _from, state=%__MODULE__{}) do
     rules = create_rules(args)
     state = %{state | rules: rules}
+    GenEvent.notify(state.manager, {:rules, rules})
     {:reply, :ok, state}
   end
 
@@ -61,5 +69,9 @@ defmodule PlugLoadBalancer.Config do
     end)
     |> List.flatten()
     |> Rule.new()
+  end
+
+  defp create_routes(rules) do
+    Enum.map(rules, &Rule.to_route/1)
   end
 end

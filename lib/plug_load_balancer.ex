@@ -5,6 +5,7 @@ defmodule PlugLoadBalancer do
     import Supervisor.Spec, warn: false
 
     children = [
+      worker(GenEvent, event_manager_args()),
       worker(PlugLoadBalancer.Config, config_args()),
       PlugLoadBalancer.Plug.ApiRouter.child_spec(api_args()),
       PlugLoadBalancer.ProxyEndpoint.child_spec(proxy_args())
@@ -25,6 +26,11 @@ defmodule PlugLoadBalancer do
   end
 
   defp proxy_args do
-    [config: PlugLoadBalancer.Config]
+    [config: PlugLoadBalancer.Config,
+     manager: PlugLoadBalancer.ProxyEndpoint.Manager]
+  end
+
+  defp event_manager_args do
+    [[name: PlugLoadBalancer.ProxyEndpoint.Manager]]
   end
 end

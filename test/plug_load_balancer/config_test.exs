@@ -6,12 +6,12 @@ defmodule PlugLoadBalancer.ConfigTest do
 
   describe "PlugLoadBalancer.Config" do
     test "start_link registers name", context do
-      assert {:ok, pid} = Config.start_link(context.test)
+      assert {:ok, pid} = start_link(context.test)
       assert ^pid = Process.whereis(context.test)
     end
 
     test "routes/1 defaults to empty", context do
-      assert {:ok, pid} = Config.start_link(context.test)
+      assert {:ok, pid} = start_link(context.test)
       assert [] == Config.routes(pid)
     end
 
@@ -19,7 +19,7 @@ defmodule PlugLoadBalancer.ConfigTest do
       rules = [[host: "no.path.example.org", plug: {Test.Plug, []}],
                [path: "/no-host", plug: {Test.Plug, []}],
                [host: "example.org", path: "/test", plug: {Test.Plug, [option: :foo]}]]
-      assert {:ok, config} = Config.start_link(context.test, rules: rules)
+      assert {:ok, config} = start_link(context.test, rules: rules)
       assert [a, b, c] = Config.routes(config)
       assert_cowboy_route(a, {~c"no.path.example.org", :_, Test.Plug, []})
       assert_cowboy_route(b, {:_, ~c"/no-host", Test.Plug, []})
@@ -35,7 +35,7 @@ defmodule PlugLoadBalancer.ConfigTest do
 
     test "routes/1 plug initial state is computed", context do
       rules = [[host: "example.org", plug: {InitializingPlug, [foo: :bar]}]]
-      assert {:ok, config} = Config.start_link(context.test, rules: rules)
+      assert {:ok, config} = start_link(context.test, rules: rules)
       assert [a] = Config.routes(config)
       assert_cowboy_route(a, {~c"example.org", :_,
                               InitializingPlug, {:opts, [foo: :bar]}})
@@ -43,16 +43,43 @@ defmodule PlugLoadBalancer.ConfigTest do
 
     test "rules/1 returns rule state", context do
       rules = [[host: "example.org", plug: {Test.Plug, [option: :foo]}]]
-      assert {:ok, _pid} = Config.start_link(context.test, rules: rules)
+      assert {:ok, _pid} = start_link(context.test, rules: rules)
       assert [a] = Config.rules(context.test)
       assert a == Rule.new(host: "example.org", plug: Test.Plug, plug_opts: [option: :foo])
     end
 
     test "update/2 changes state", context do
-      {:ok, config} = Config.start_link(context.test, rules: [])
+      {:ok, config} = start_link(context.test, rules: [])
       :ok = Config.update(config, rules: [[host: "example.net", path: "/test", plug: {Test.Plug, []}]])
       assert [a] = Config.routes(config)
       assert_cowboy_route(a, {~c"example.net", ~c"/test", Test.Plug, []})
+    end
+
+    defmodule TestEventHandler do
+      use GenEvent
+
+      def init(pid) do
+        {:ok, pid}
+      end
+
+      def handle_event({:rules, event}, pid) do
+        send pid, event
+        {:ok, pid}
+      end
+
+      def handle_event(event, _pid) do
+        flunk("Unexpected event: #{inspect event}")
+      end
+    end
+
+    test "update/2 notifies event handlers", context do
+      parent = self()
+      {:ok, manager} = GenEvent.start_link()
+      assert :ok = GenEvent.add_handler(manager, TestEventHandler, parent)
+      {:ok, config} = start_link(context.test, rules: [], manager: manager)
+      :ok = Config.update(config, rules: [[host: "example.org", plug: {Test.Plug, []}]])
+      rule = Rule.new(host: "example.org", plug: Test.Plug, plug_opts: [])
+      assert_receive [^rule]
     end
   end
 
@@ -73,4 +100,11 @@ defmodule PlugLoadBalancer.ConfigTest do
                        {plug, plug_opts}}]}
   end
 
+  defp start_link(name, opts \\ []) do
+    {:ok, manager} = GenEvent.start_link
+    opts =
+      opts
+      |> Keyword.put_new(:manager, manager)
+    Config.start_link(name, opts)
+  end
 end

@@ -24,6 +24,5 @@ defmodule PlugLoadBalancer.ProxyTest do
       )
       assert expected == child_spec
     end
-
   end
 end

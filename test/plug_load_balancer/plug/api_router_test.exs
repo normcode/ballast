@@ -23,11 +23,14 @@ defmodule PlugLoadBalancer.Plug.ApiRouterTest do
 
   describe "PlugLoadBalancer.ApiRouter" do
     test "GET /api/routes", ctx do
-      {:ok, config} = PlugLoadBalancer.Config.start_link(ctx.test, rules: [
-            [host: "example.org", plug: {TestPlug, []}],
-            [path: "/test", plug: {TestPlug, [foo: :bar]}],
-            [host: "example.com", path: "/test", plug: {TestPlug, []}]
-          ])
+      {:ok, manager} = GenEvent.start_link
+      {:ok, config} = PlugLoadBalancer.Config.start_link(
+        ctx.test,
+        manager: manager,
+        rules: [
+          [host: "example.org", plug: {TestPlug, []}],
+          [path: "/test", plug: {TestPlug, [foo: :bar]}],
+          [host: "example.com", path: "/test", plug: {TestPlug, []}]])
       plug = ApiRouter.init(config: config)
       conn =
         conn(:get, "/api/routes")
@@ -40,10 +43,5 @@ defmodule PlugLoadBalancer.Plug.ApiRouterTest do
         %{"host" => "example.com", "path" => "/test"}
       ]
     end
-  end
-
-  def create_config(ctx) do
-    {:ok, pid} = PlugLoadBalancer.Config.start_link(ctx.test)
-    [config: ctx.test, Config_pid: pid]
   end
 end
