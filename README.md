@@ -1,4 +1,4 @@
-# PlugLoadBalancer
+# Ballast
 
 **TODO: Add description**
 
@@ -10,7 +10,7 @@ If [available in Hex](https://hex.pm/docs/publish), the package can be installed
 
     ```elixir
     def deps do
-      [{:plug_load_balancer, "~> 0.1.0"}]
+      [{:ballast, "~> 0.1.0"}]
     end
     ```
 
@@ -18,7 +18,6 @@ If [available in Hex](https://hex.pm/docs/publish), the package can be installed
 
     ```elixir
     def application do
-      [applications: [:plug_load_balancer]]
+      [applications: [:ballast]]
     end
     ```
-

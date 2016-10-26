@@ -1,12 +1,12 @@
-defmodule PlugLoadBalancer.ProxyTest do
+defmodule Ballast.ProxyTest do
   use ExUnit.Case, async: true
 
-  alias PlugLoadBalancer.ProxyEndpoint
-  alias PlugLoadBalancer.Plug.Proxy
-  alias PlugLoadBalancer.Config
+  alias Ballast.ProxyEndpoint
+  alias Ballast.Plug.Proxy
+  alias Ballast.Config
 
-  describe "PlugLoadBalancer.ProxyEndpoint.child_spec" do
-    @default_config_name PlugLoadBalancer.Config
+  describe "Ballast.ProxyEndpoint.child_spec" do
+    @default_config_name Ballast.Config
 
     test "initially empty", ctx do
       rules = [
@@ -17,7 +17,7 @@ defmodule PlugLoadBalancer.ProxyTest do
       child_spec = ProxyEndpoint.child_spec(config: ctx.test)
       expected = Plug.Adapters.Cowboy.child_spec(
         :http,
-        PlugLoadBalancer.Plug.Proxy,
+        Ballast.Plug.Proxy,
         [],
         [port: 8080,
          dispatch: []]

@@ -1,10 +1,10 @@
-defmodule PlugLoadBalancer.Config.Rule do
+defmodule Ballast.Config.Rule do
   defstruct [:host, :path, :plug, :plug_opts]
 
   @cowboy_handler Plug.Adapters.Cowboy.Handler
   @default_host :_
   @default_path :_
-  @default_plug PlugLoadBalancer.Plug.Default
+  @default_plug Ballast.Plug.Default
   @default_opts []
 
   def new(opts \\ []) do
@@ -25,8 +25,8 @@ defmodule PlugLoadBalancer.Config.Rule do
   defp to_char_route(s), do: to_char_list(s)
 end
 
-defimpl Poison.Encoder, for: PlugLoadBalancer.Config.Rule do
-  alias PlugLoadBalancer.Config.Rule
+defimpl Poison.Encoder, for: Ballast.Config.Rule do
+  alias Ballast.Config.Rule
 
   def encode(rule = %Rule{path: :_}, opts) do
     Poison.Encoder.Map.encode(%{host: rule.host}, opts)

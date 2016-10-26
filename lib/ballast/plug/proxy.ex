@@ -1,4 +1,4 @@
-defmodule PlugLoadBalancer.Plug.Proxy do
+defmodule Ballast.Plug.Proxy do
   import Plug.Conn
 
   defstruct [:origin]

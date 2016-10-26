@@ -2,8 +2,8 @@
 # and its dependencies with the aid of the Mix.Config module.
 use Mix.Config
 
-config :plug_load_balancer, routes: [
-  [host: "example.org", plug: {PlugLoadBalancer.Plug.Proxy, [origin: "httpbin.org"]}]
+config :ballast, routes: [
+  [host: "example.org", plug: {Ballast.Plug.Proxy, [origin: "httpbin.org"]}]
 ]
 # This configuration is loaded before any dependency and is restricted
 # to this project. If another project depends on this project, this
@@ -13,11 +13,11 @@ config :plug_load_balancer, routes: [
 
 # You can configure for your application as:
 #
-#     config :plug_load_balancer, key: :value
+#     config :ballast, key: :value
 #
 # And access this configuration in your application as:
 #
-#     Application.get_env(:plug_load_balancer, :key)
+#     Application.get_env(:ballast, :key)
 #
 # Or configure a 3rd-party app:
 #

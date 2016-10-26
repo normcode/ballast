@@ -1,4 +1,4 @@
-defmodule PlugLoadBalancer.Plug.Api.FetchRules do
+defmodule Ballast.Plug.Api.FetchRules do
   import Plug.Conn
   @behaviour Plug
 
@@ -6,7 +6,7 @@ defmodule PlugLoadBalancer.Plug.Api.FetchRules do
 
  def call(conn, opts) do
     config = opts[:config]
-    rules = PlugLoadBalancer.Config.rules(config)
+    rules = Ballast.Config.rules(config)
     put_private(conn, :rules, rules)
   end
 end

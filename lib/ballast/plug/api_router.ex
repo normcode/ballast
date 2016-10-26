@@ -1,4 +1,4 @@
-defmodule PlugLoadBalancer.Plug.ApiRouter do
+defmodule Ballast.Plug.ApiRouter do
   use Plug.Router
 
   plug :match
@@ -12,7 +12,7 @@ defmodule PlugLoadBalancer.Plug.ApiRouter do
     plug_opts =
       opts
       |> Keyword.get(:plug_opts, [])
-      |> Keyword.put_new(:config, PlugLoadBalancer.Config)
+      |> Keyword.put_new(:config, Ballast.Config)
     cowboy_opts =
       opts
       |> Keyword.get(:cowboy_opts, [])
@@ -24,7 +24,7 @@ defmodule PlugLoadBalancer.Plug.ApiRouter do
 
   def call(conn, opts) do
     conn
-    |> PlugLoadBalancer.Plug.Api.FetchRules.call(opts)
+    |> Ballast.Plug.Api.FetchRules.call(opts)
     |> super(opts)
   end
 

@@ -1,11 +1,11 @@
-defmodule PlugLoadBalancer.Plug.ApiRouterTest do
+defmodule Ballast.Plug.ApiRouterTest do
   use ExUnit.Case, async: true
   use Plug.Test
 
-  alias PlugLoadBalancer.Plug.ApiRouter
+  alias Ballast.Plug.ApiRouter
 
-  describe "PlugLoadBalancer.Plug.ApiRouter.spec/1" do
-    @default_config_name PlugLoadBalancer.Config
+  describe "Ballast.Plug.ApiRouter.spec/1" do
+    @default_config_name Ballast.Config
 
     test "defaults" do
       child_spec = ApiRouter.child_spec()
@@ -21,10 +21,10 @@ defmodule PlugLoadBalancer.Plug.ApiRouterTest do
     end
   end
 
-  describe "PlugLoadBalancer.ApiRouter" do
+  describe "Ballast.ApiRouter" do
     test "GET /api/routes", ctx do
       {:ok, manager} = GenEvent.start_link
-      {:ok, config} = PlugLoadBalancer.Config.start_link(
+      {:ok, config} = Ballast.Config.start_link(
         ctx.test,
         manager: manager,
         rules: [

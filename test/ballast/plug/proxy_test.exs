@@ -1,10 +1,10 @@
-defmodule PlugLoadBalancer.Plug.ProxyTest do
+defmodule Ballast.Plug.ProxyTest do
   use ExUnit.Case, async: true
   use Plug.Test
 
-  alias PlugLoadBalancer.Plug.Proxy
+  alias Ballast.Plug.Proxy
 
-  describe "PlugLoadBalancer.Plug.Proxy" do
+  describe "Ballast.Plug.Proxy" do
     setup [:bypass, :origin, :plug]
 
     test "proxies to origin", %{bypass: bypass, plug: proxy} do

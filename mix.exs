@@ -1,8 +1,8 @@
-defmodule PlugLoadBalancer.Mixfile do
+defmodule Ballast.Mixfile do
   use Mix.Project
 
   def project do
-    [app: :plug_load_balancer,
+    [app: :ballast,
      version: "0.1.0",
      elixir: "~> 1.3",
      build_embedded: Mix.env == :prod,
@@ -15,7 +15,7 @@ defmodule PlugLoadBalancer.Mixfile do
                     :cowboy,
                     :plug,
                     :httpotion],
-     mod: {PlugLoadBalancer, []}]
+     mod: {Ballast, []}]
   end
 
   defp deps(_env) do

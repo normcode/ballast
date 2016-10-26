@@ -1,4 +1,4 @@
-defmodule PlugLoadBalancer.Plug.Default do
+defmodule Ballast.Plug.Default do
   @behaviour Plug
   import Plug.Conn
 

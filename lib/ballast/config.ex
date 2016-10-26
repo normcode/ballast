@@ -1,13 +1,13 @@
-defmodule PlugLoadBalancer.Config do
+defmodule Ballast.Config do
   use GenServer
-  alias PlugLoadBalancer.Config.Rule
+  alias Ballast.Config.Rule
 
   defstruct [table: nil,
              rules: [],
-             listener: PlugLoadBalancer.ProxyEndpoint.HTTP,
-             manager: PlugLoadBalancer.ProxyEndpoint.Manager,
-             update_handler: {PlugLoadBalancer.ProxyUpdateHandler,
-                              [listener: PlugLoadBalancer.ProxyEndpoint.HTTP]}]
+             listener: Ballast.ProxyEndpoint.HTTP,
+             manager: Ballast.ProxyEndpoint.Manager,
+             update_handler: {Ballast.ProxyUpdateHandler,
+                              [listener: Ballast.ProxyEndpoint.HTTP]}]
 
   def start_link(name, opts \\ []) do
     rules = create_rules(opts)

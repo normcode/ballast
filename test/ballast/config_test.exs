@@ -1,10 +1,10 @@
-defmodule PlugLoadBalancer.ConfigTest do
+defmodule Ballast.ConfigTest do
   use ExUnit.Case, async: true
 
-  alias PlugLoadBalancer.Config
-  alias PlugLoadBalancer.Config.Rule
+  alias Ballast.Config
+  alias Ballast.Config.Rule
 
-  describe "PlugLoadBalancer.Config" do
+  describe "Ballast.Config" do
     test "start_link registers name", context do
       assert {:ok, pid} = start_link(context.test)
       assert ^pid = Process.whereis(context.test)
@@ -83,10 +83,10 @@ defmodule PlugLoadBalancer.ConfigTest do
     end
   end
 
-  describe "PlugLoadBalancer.Config.Rule" do
+  describe "Ballast.Config.Rule" do
     test "default values" do
       rule = Rule.new
-      assert rule.plug == PlugLoadBalancer.Plug.Default
+      assert rule.plug == Ballast.Plug.Default
       assert rule.plug_opts == []
       assert rule.host == :_
       assert rule.path == :_

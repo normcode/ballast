@@ -1,9 +1,9 @@
-defmodule PlugLoadBalancer.Plug.DefaultTest do
+defmodule Ballast.Plug.DefaultTest do
   use ExUnit.Case, async: true
   use Plug.Test
 
   describe "PlugLoader.Plug.Default.call/2" do
-    alias PlugLoadBalancer.Plug.Default
+    alias Ballast.Plug.Default
 
     @default_plug Default.init([])
 

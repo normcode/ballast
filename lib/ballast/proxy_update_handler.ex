@@ -1,4 +1,4 @@
-defmodule PlugLoadBalancer.ProxyUpdateHandler do
+defmodule Ballast.ProxyUpdateHandler do
   use GenEvent
 
   def init(opts) do
@@ -7,7 +7,7 @@ defmodule PlugLoadBalancer.ProxyUpdateHandler do
   end
 
   def handle_event({:rules, rules}, listener) do
-    alias PlugLoadBalancer.Config.Rule
+    alias Ballast.Config.Rule
     routes = Enum.map(rules, &Rule.to_route/1)
     dispatch = :cowboy_router.compile(routes)
     :ok = :cowboy.set_env(listener, :dispatch, dispatch)
