@@ -55,28 +55,9 @@ defmodule Ballast.ConfigTest do
       assert_cowboy_route(a, {~c"example.net", ~c"/test", Test.Plug, []})
     end
 
-    defmodule TestEventHandler do
-      use GenEvent
-
-      def init(pid) do
-        {:ok, pid}
-      end
-
-      def handle_event({:rules, event}, pid) do
-        send pid, event
-        {:ok, pid}
-      end
-
-      def handle_event(event, _pid) do
-        flunk("Unexpected event: #{inspect event}")
-      end
-    end
-
     test "update/2 notifies event handlers", context do
-      parent = self()
-      {:ok, manager} = GenEvent.start_link()
-      assert :ok = GenEvent.add_handler(manager, TestEventHandler, parent)
-      {:ok, config} = start_link(context.test, rules: [], manager: manager)
+      handler = {TestEventHandler, self()}
+      {:ok, config} = start_link(context.test, rules: [], update_handler: handler)
       :ok = Config.update(config, rules: [[host: "example.org", plug: {Test.Plug, []}]])
       rule = Rule.new(host: "example.org", plug: Test.Plug, plug_opts: [])
       assert_receive [^rule]
@@ -102,9 +83,12 @@ defmodule Ballast.ConfigTest do
 
   defp start_link(name, opts \\ []) do
     {:ok, manager} = GenEvent.start_link
+    handler = {TestEventHandler, self()}
+
     opts =
       opts
       |> Keyword.put_new(:manager, manager)
+      |> Keyword.put_new(:update_handler, handler)
     Config.start_link(name, opts)
   end
 end

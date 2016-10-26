@@ -4,10 +4,10 @@ defmodule Ballast.Config do
 
   defstruct [table: nil,
              rules: [],
-             listener: Ballast.ProxyEndpoint.HTTP,
+             listener: Ballast.Plug.Proxy.HTTP,
              manager: Ballast.ProxyEndpoint.Manager,
              update_handler: {Ballast.ProxyUpdateHandler,
-                              [listener: Ballast.ProxyEndpoint.HTTP]}]
+                              [listener: Ballast.Plug.Proxy.HTTP]}]
 
   def start_link(name, opts \\ []) do
     rules = create_rules(opts)
@@ -34,6 +34,7 @@ defmodule Ballast.Config do
     state = struct!(__MODULE__, opts)
     {handler, args} = state.update_handler
     :ok = GenEvent.add_mon_handler(state.manager, handler, args)
+    _ = Process.send_after(self(), :sync_routes, 100)
     {:ok, state}
   end
 
@@ -51,6 +52,28 @@ defmodule Ballast.Config do
 
   def handle_call(:rules, _from, state = %__MODULE__{rules: rules}) do
     {:reply, rules, state}
+  end
+
+  def handle_info(:sync_routes, state) do
+    GenEvent.sync_notify(state.manager, {:rules, state.rules})
+    {:noreply, state}
+  end
+
+  def handle_info({:gen_event_EXIT, _, reason}, state)
+  when reason in [:normal, :shutdown] do
+    {:ok, state}
+  end
+
+  def handle_info({:gen_event_EXIT, _handler, {:swapped, _, _}}, state) do
+    {:ok, state}
+  end
+
+  def handle_info({:gen_event_EXIT, handler, reason}, %{handler: {handler, _}}) do
+    {:stop, {:update_handler_EXIT, reason}}
+  end
+
+  def handle_info(message, _state) do
+    {:stop, message}
   end
 
   defp create_rules(args) do

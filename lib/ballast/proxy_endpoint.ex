@@ -1,7 +1,6 @@
 defmodule Ballast.ProxyEndpoint do
 
   def child_spec(opts \\ []) do
-    config    = Keyword.get(opts, :config, Ballast.Config)
     port      = Keyword.get(opts, :port, 8080)
     scheme    = Keyword.get(opts, :scheme, :http)
     routes    = []

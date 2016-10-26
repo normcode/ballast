@@ -13,7 +13,8 @@ defmodule Ballast.ProxyTest do
         [host: "test.example.com", plug: Proxy, plug_opts: [origin: "example.org"]],
         [host: "example.com", plug: Proxy, plug_opts: [origin: "example.org"]],
       ]
-      _ = Config.start_link(ctx.test, rules: rules)
+      {:ok, manager} = GenEvent.start_link
+      _ = Config.start_link(ctx.test, manager: manager, rules: rules)
       child_spec = ProxyEndpoint.child_spec(config: ctx.test)
       expected = Plug.Adapters.Cowboy.child_spec(
         :http,

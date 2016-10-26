@@ -2,7 +2,7 @@ defmodule Ballast.Plug.DefaultTest do
   use ExUnit.Case, async: true
   use Plug.Test
 
-  describe "PlugLoader.Plug.Default.call/2" do
+  describe "Ballast.Plug.Default.call/2" do
     alias Ballast.Plug.Default
 
     @default_plug Default.init([])

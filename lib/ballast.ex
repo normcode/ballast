@@ -8,7 +8,7 @@ defmodule Ballast do
       worker(GenEvent, event_manager_args()),
       worker(Ballast.Config, config_args()),
       Ballast.Plug.ApiRouter.child_spec(api_args()),
-      Ballast.ProxyEndpoint.child_spec(proxy_args())
+      Ballast.ProxyEndpoint.child_spec(proxy_args()),
       # supervisor(Ballast.HealthCheck, []),
     ]
 
