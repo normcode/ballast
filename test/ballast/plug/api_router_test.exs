@@ -28,9 +28,9 @@ defmodule Ballast.Plug.ApiRouterTest do
         ctx.test,
         manager: manager,
         rules: [
-          [host: "example.org", plug: {TestPlug, []}],
-          [path: "/test", plug: {TestPlug, [foo: :bar]}],
-          [host: "example.com", path: "/test", plug: {TestPlug, []}]])
+          [host: "example.org", plug: {Test.Plug, []}],
+          [path: "/test", plug: {Test.Plug, [foo: :bar]}],
+          [host: "example.com", path: "/test", plug: {Test.Plug, []}]])
       plug = ApiRouter.init(config: config)
       conn =
         conn(:get, "/api/routes")
