@@ -13,6 +13,7 @@ $ mix deps.get
 Running dependency resolution
 ...
 $ mix compile
+...
 ```
 
 Create a configuration file, `./config/proxy.exs`:
