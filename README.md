@@ -20,9 +20,11 @@ Create a configuration file, `./config/proxy.exs`:
 
 ```elixir
 use Mix.Config
+alias Ballast.Plug.Proxy
 
 config :ballast, routes: [
-  [host: "example.org", plug: {Proxy, [origin: "httpbin.org"]}]
+  [host: "example.org", plug: {Proxy, [origin: "httpbin.org"]}],
+  [host: "example.com", plug: {Proxy, [origin: "127.0.0.1:4000"]}]
 ]
 ```
 
@@ -32,5 +34,23 @@ config :ballast, routes: [
 $ MIX_ENV=proxy iex -S mix
 $ curl -H 'host: example.org' localhost:8080/get -i
 HTTP/1.1 200 OK
-...
+access-control-allow-credentials: true
+access-control-allow-origin: *
+connection: keep-alive
+content-length: 213
+content-type: application/json
+date: Thu, 27 Oct 2016 22:02:12 GMT
+server: nginx
+
+{
+  "args": {},
+  "headers": {
+    "Accept": "*/*",
+    "Content-Length": "0",
+    "Host": "example.org",
+    "User-Agent": "curl/7.43.0"
+  },
+  "origin": "10.0.0.2,
+  "url": "http://example.org/get"
+}
 ```
