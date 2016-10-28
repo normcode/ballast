@@ -22,9 +22,12 @@ Create a configuration file, `./config/proxy.exs`:
 use Mix.Config
 alias Ballast.Plug.Proxy
 
-config :ballast, routes: [
-  [host: "example.org", plug: {Proxy, [origin: "httpbin.org"]}],
-  [host: "example.com", plug: {Proxy, [origin: "127.0.0.1:4000"]}]
+config :ballast, [
+  proxy_port: 8080,
+  routes: [
+    [host: "example.org", plug: {Proxy, [origin: "httpbin.org"]}],
+    [host: "example.com", plug: {Proxy, [origin: "127.0.0.1:4000"]}]
+  ]
 ]
 ```
 

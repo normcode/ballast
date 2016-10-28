@@ -6,8 +6,6 @@ defmodule Ballast.ProxyTest do
   alias Ballast.Config
 
   describe "Ballast.ProxyEndpoint.child_spec" do
-    @default_config_name Ballast.Config
-
     test "initially empty", ctx do
       rules = [
         [host: "test.example.com", plug: Proxy, plug_opts: [origin: "example.org"]],
@@ -18,7 +16,7 @@ defmodule Ballast.ProxyTest do
       child_spec = ProxyEndpoint.child_spec(config: ctx.test)
       expected = Plug.Adapters.Cowboy.child_spec(
         :http,
-        Ballast.Plug.Proxy,
+        Ballast.ProxyEndpoint,
         [],
         [port: 8080,
          dispatch: []]
