@@ -57,4 +57,6 @@ Start the application within the configured environment:
 
 The HTTP dispatch rules can be changed at runtime. From the `iex` REPL:
 
-    iex> Config.update(rules: [[host: "example.com", plug: {SomePlug, []}]])
+```elixir
+iex> Config.update(rules: [[host: "example.com", plug: {SomePlug, []}]])
+```
