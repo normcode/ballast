@@ -1,7 +1,8 @@
 defmodule Ballast.Plug.Proxy do
   import Plug.Conn
 
-  defstruct [:origin]
+  defstruct [:origin,
+             http_client: HTTPotion]
 
   @default_timeout 5_000 # in ms
 
@@ -24,7 +25,7 @@ defmodule Ballast.Plug.Proxy do
   end
 
   defp initialize_options(opts) do
-    struct(__MODULE__, opts)
+    struct!(__MODULE__, opts)
   end
 
   defp read_request_body(conn, _opts) do
@@ -33,7 +34,7 @@ defmodule Ballast.Plug.Proxy do
   end
 
   defp send_request(conn, opts = %__MODULE__{}) do
-    response = HTTPotion.request(
+    response = opts.http_client.request(
       request_method(conn.method),
       uri(conn, opts.origin),
       headers: request_headers(conn),
@@ -51,9 +52,9 @@ defmodule Ballast.Plug.Proxy do
         %{conn | resp_headers: resp_headers}
         |> resp(status, body)
       %HTTPotion.ErrorResponse{message: "econnrefused"} ->
-        send_resp(conn, 503, "")
+        resp(conn, 503, "")
       %HTTPotion.ErrorResponse{message: "req_timedout"} ->
-        send_resp(conn, 504, "")
+        resp(conn, 504, "")
     end
   end
 
