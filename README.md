@@ -31,7 +31,7 @@ config :ballast, [
 ]
 ```
 
-... and start the application within the configured environment.
+Start the application within the configured environment:
 
 ```
 $ MIX_ENV=proxy iex -S mix
@@ -44,6 +44,7 @@ content-length: 213
 content-type: application/json
 date: Thu, 27 Oct 2016 22:02:12 GMT
 server: nginx
+via: 1.1 ballast
 
 {
   "args": {},
@@ -57,3 +58,7 @@ server: nginx
   "url": "http://example.org/get"
 }
 ```
+
+The HTTP dispatch rules can be changed at runtime. From the `iex` REPL:
+
+`iex> Config.update(rules: [[host: "example.com", plug: {SomePlug, []}]])`
