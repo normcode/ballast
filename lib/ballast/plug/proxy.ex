@@ -49,7 +49,7 @@ defmodule Ballast.Plug.Proxy do
       %HTTPotion.Response{body: body, status_code: status, headers: headers} ->
         resp_headers = Enum.into(headers.hdrs, [], &convert_header/1)
         %{conn | resp_headers: resp_headers}
-        |> send_resp(status, body)
+        |> resp(status, body)
       %HTTPotion.ErrorResponse{message: "econnrefused"} ->
         send_resp(conn, 503, "")
       %HTTPotion.ErrorResponse{message: "req_timedout"} ->
