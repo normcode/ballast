@@ -1,4 +1,6 @@
 defmodule Ballast.ProxyEndpoint do
+  @behaviour Plug
+  import Plug.Conn
 
   def child_spec(opts \\ []) do
     port         = Keyword.get(opts, :port, 8080)
@@ -14,4 +16,19 @@ defmodule Ballast.ProxyEndpoint do
     Plug.Adapters.Cowboy.child_spec(scheme, listener_ref, plug_opts, cowboy_opts)
   end
 
+  def init(opts), do: Keyword.fetch!(opts, :plug)
+
+  def call(conn, _plug = {mod, args}) do
+    conn
+    |> mod.call(args)
+    |> set_via_header()
+  end
+
+  defp set_via_header(conn) do
+    header = case get_resp_header(conn, "via") do
+               [] -> "1.1 ballast"
+               [value] -> "1.1 ballast, " <> value
+             end
+    put_resp_header(conn, "via", header)
+  end
 end

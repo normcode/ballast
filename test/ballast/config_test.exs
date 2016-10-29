@@ -78,7 +78,7 @@ defmodule Ballast.ConfigTest do
     assert route == {host,
                      [{path,
                        Plug.Adapters.Cowboy.Handler,
-                       {plug, plug_opts}}]}
+                       {Ballast.ProxyEndpoint, {plug, plug_opts}}}]}
   end
 
   defp start_link(name, opts \\ []) do

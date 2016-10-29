@@ -2,7 +2,10 @@ defmodule Test.Plug do
   require Plug
   @behaviour Plug
   def init(opts), do: opts
-  def call(conn, _opts), do: conn
+  def call(conn, _opts) do
+    conn
+    |> Plug.Conn.put_status(:im_a_teapot) # ;)
+  end
 end
 
 defmodule TestEventHandler do

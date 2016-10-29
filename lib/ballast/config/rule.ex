@@ -17,7 +17,9 @@ defmodule Ballast.Config.Rule do
 
   def to_route(rule = %__MODULE__{}) do
     opts = rule.plug.init(rule.plug_opts)
-    {to_char_route(rule.host), [ {to_char_route(rule.path), @cowboy_handler, {rule.plug, opts}} ]}
+    endpoint_opts = Ballast.ProxyEndpoint.init(plug: {rule.plug, opts})
+    {to_char_route(rule.host),
+     [{to_char_route(rule.path), @cowboy_handler, {Ballast.ProxyEndpoint, endpoint_opts}}]}
   end
 
   defp to_char_route(nil), do: :_
