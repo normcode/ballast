@@ -1,19 +1,17 @@
 defmodule Ballast.Config.Rule do
-  defstruct [:host, :path, :plug, :plug_opts]
 
-  @cowboy_handler Plug.Adapters.Cowboy.Handler
   @default_host :_
   @default_path :_
   @default_plug Ballast.Plug.Default
   @default_opts []
 
+  defstruct [host: :_, path: :_, plug: @default_plug, plug_opts: @default_opts]
+
   def new(opts \\ []) do
-    host      = Keyword.get(opts, :host, @default_host)
-    path      = Keyword.get(opts, :path, @default_path)
-    plug      = Keyword.get(opts, :plug, @default_plug)
-    plug_opts = Keyword.get(opts, :plug_opts, @default_opts)
-    %__MODULE__{host: host, path: path, plug: plug, plug_opts: plug_opts}
+    struct!(__MODULE__, opts)
   end
+
+  @cowboy_handler Plug.Adapters.Cowboy.Handler
 
   def to_route(rule = %__MODULE__{}) do
     opts = rule.plug.init(rule.plug_opts)
