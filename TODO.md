@@ -1,17 +1,20 @@
 # TODO #
 
+- [ ] `mix test --seed 160583 --trace`
+- [ ] plug initialization
 - [ ] routing rules
-  * [ ] host: fixed (string, .suffix.domain)
   * [ ] path: prefix
+  * [ ] host: fixed (string, .suffix.domain)
   * [ ] headers: values
-- [ ] header mod
-- [ ] url mod
-- [ ] embedded plug
+  * [ ] DSL (?)
 - [ ] backends
   * [ ] load balancer
   * [ ] health checks
   * [ ] maintenance mode
   * [ ] sticky sessions
+- [ ] header mod
+- [ ] url mod
+- [ ] embedded plug
 - [ ] API
  - [ ] configuration
  - [ ] status
