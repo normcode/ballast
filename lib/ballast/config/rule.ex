@@ -1,25 +1,35 @@
 defmodule Ballast.Config.Rule do
-  defstruct [:host, :path, :plug, :plug_opts]
 
-  @cowboy_handler Plug.Adapters.Cowboy.Handler
   @default_host :_
   @default_path :_
   @default_plug Ballast.Plug.Default
   @default_opts []
 
+  alias Ballast.Plug.Prefix
+  alias Ballast.ProxyEndpoint
+
+
+  defstruct [host: :_, path: :_, prefix: nil, plug: @default_plug, plug_opts: @default_opts]
+
   def new(opts \\ []) do
-    host      = Keyword.get(opts, :host, @default_host)
-    path      = Keyword.get(opts, :path, @default_path)
-    plug      = Keyword.get(opts, :plug, @default_plug)
-    plug_opts = Keyword.get(opts, :plug_opts, @default_opts)
-    %__MODULE__{host: host, path: path, plug: plug, plug_opts: plug_opts}
+    struct!(__MODULE__, opts)
+  end
+
+  def to_route(rule = %__MODULE__{prefix: nil}) do
+    opts = ProxyEndpoint.init(plug: {rule.plug, rule.plug_opts})
+    to_cowboy_route(rule.host, rule.path, opts)
   end
 
   def to_route(rule = %__MODULE__{}) do
-    opts = rule.plug.init(rule.plug_opts)
-    endpoint_opts = Ballast.ProxyEndpoint.init(plug: {rule.plug, opts})
-    {to_char_route(rule.host),
-     [{to_char_route(rule.path), @cowboy_handler, {Ballast.ProxyEndpoint, endpoint_opts}}]}
+    opts = [path: rule.prefix, plug: {rule.plug, rule.plug_opts}]
+    opts = ProxyEndpoint.init(plug: {Prefix, opts})
+    to_cowboy_route(rule.host, rule.path, opts)
+  end
+
+  @cowboy_handler Plug.Adapters.Cowboy.Handler
+
+  defp to_cowboy_route(host, path, opts) do
+    {to_char_route(host), [{to_char_route(path), @cowboy_handler, {ProxyEndpoint, opts}}]}
   end
 
   defp to_char_route(nil), do: :_

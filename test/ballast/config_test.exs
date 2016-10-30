@@ -3,6 +3,7 @@ defmodule Ballast.ConfigTest do
 
   alias Ballast.Config
   alias Ballast.Config.Rule
+  alias Ballast.Plug.Prefix
 
   describe "Ballast.Config" do
     test "start_link registers name", context do
@@ -16,15 +17,23 @@ defmodule Ballast.ConfigTest do
     end
 
     test "routes/1 to embedded plug", context do
-      rules = [[host: "no.path.example.org", plug: {Test.Plug, []}],
-               [path: "/no-host", plug: {Test.Plug, []}],
+      rules = [[host: "example.org", plug: {Test.Plug, []}],
+               [path: "/path", plug: {Test.Plug, []}],
                [host: "example.org", path: "/test", plug: {Test.Plug, [option: :foo]}]]
       assert {:ok, config} = start_link(context.test, rules: rules)
       assert [a, b, c] = Config.routes(config)
-      assert_cowboy_route(a, {~c"no.path.example.org", :_, Test.Plug, []})
-      assert_cowboy_route(b, {:_, ~c"/no-host", Test.Plug, []})
-      assert_cowboy_route(c, {~c"example.org", ~c"/test", Test.Plug,
-                              [option: :foo]})
+      assert_cowboy_route(a, {~c"example.org", :_, Test.Plug, []})
+      assert_cowboy_route(b, {:_, ~c"/path", Test.Plug, []})
+      assert_cowboy_route(c, {~c"example.org", ~c"/test", Test.Plug, [option: :foo]})
+    end
+
+    test "route/1 with prefix rule", context do
+      rules = [[path: "/test", prefix: "/test", plug: {Test.Plug, []}],
+               [path: "/test/foo", prefix: "/test", plug: {Test.Plug, []}]]
+      assert {:ok, config} = start_link(context.test, rules: rules)
+      assert [a, b] = Config.routes(config)
+      assert_cowboy_route(a, {:_, ~c"/test", Prefix, Prefix.init([path: "/test", plug: {Test.Plug, []}])})
+      assert_cowboy_route(b, {:_, ~c"/test/foo", Prefix, Prefix.init([path: "/test", plug: {Test.Plug, []}])})
     end
 
     defmodule InitializingPlug do

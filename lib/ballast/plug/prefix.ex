@@ -26,12 +26,18 @@ defmodule Ballast.Plug.Prefix do
 
   defp strip_prefix(conn = %Plug.Conn{path_info: path, script_name: script}, prefix) do
     {base, new_path} = Enum.split(path, length(path) - length(prefix))
-    %{conn | path_info: new_path, script_name: script ++ base}
+    %{conn |
+      path_info: new_path,
+      request_path: "/" <> Enum.join(new_path, "/"),
+      script_name: script ++ base}
     |> put_private(:ballast_path, path)
     |> put_private(:ballast_script, script)
   end
 
   defp replace_prefix(conn) do
-    %{conn | path_info: conn.private.ballast_path, script_name: conn.private.ballast_script}
+    %{conn |
+      path_info: conn.private.ballast_path,
+      request_path: "/" <> Enum.join(conn.private.ballast_path, "/"),
+      script_name: conn.private.ballast_script}
   end
 end
