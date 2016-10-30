@@ -56,6 +56,10 @@ defmodule Ballast.Plug.Proxy do
         resp(conn, 503, "")
       %HTTPotion.ErrorResponse{message: "req_timedout"} ->
         resp(conn, 504, "")
+      %HTTPotion.ErrorResponse{message: message} ->
+        require Logger
+        Logger.error("Unexpected error response: #{inspect message}")
+        resp(conn, 500, "")
     end
   end
 
