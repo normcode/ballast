@@ -49,7 +49,8 @@ defmodule Ballast.Plug.Proxy do
     case conn.assigns.response do
       %HTTPotion.Response{body: body, status_code: status, headers: headers} ->
         resp_headers = Enum.into(headers.hdrs, [], &convert_header/1)
-        %{conn | resp_headers: resp_headers}
+        conn
+        |> merge_resp_headers(resp_headers)
         |> resp(status, body)
       %HTTPotion.ErrorResponse{message: "econnrefused"} ->
         resp(conn, 503, "")
