@@ -49,5 +49,6 @@ defmodule Ballast.Plug.PrefixTest do
     assert conn.assigns.path == path
     assert conn.assigns.opts == []
     assert conn.path_info == path_info
+    assert conn.request_path == "/" <> Enum.join(path_info, "/")
   end
 end
