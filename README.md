@@ -23,8 +23,10 @@ alias Ballast.Plug.Proxy
 config :ballast, [
   proxy_port: 8080,
   routes: [
-    [host: "example.org", plug: {Proxy, [origin: "httpbin.org"]}],
-    [host: "example.com", plug: {Proxy, [origin: "127.0.0.1:4000"]}]
+    [path: "/httpbin", prefix: "/httpbin"     # matches and removes URI prefix
+     plug: {Proxy, [origin: "httpbin.org"]}],
+    [host: "example.com",                     # matches HTTP `host` header
+     plug: {Proxy, [origin: "127.0.0.1:4000"]}]
   ]
 ]
 ```
@@ -32,14 +34,15 @@ config :ballast, [
 Start the application within the configured environment:
 
     $ MIX_ENV=proxy iex -S mix
-    $ curl -H 'host: example.org' localhost:8080/get -i
+    $ curl localhost:8080/httpbin/get -i
     HTTP/1.1 200 OK
+    cache-control: max-age=0, private, must-revalidate
     access-control-allow-credentials: true
     access-control-allow-origin: *
     connection: keep-alive
-    content-length: 213
+    content-length: 209
     content-type: application/json
-    date: Thu, 27 Oct 2016 22:02:12 GMT
+    date: Mon, 31 Oct 2016 04:55:46 GMT
     server: nginx
     via: 1.1 ballast
 
@@ -48,15 +51,16 @@ Start the application within the configured environment:
       "headers": {
         "Accept": "*/*",
         "Content-Length": "0",
-        "Host": "example.org",
+        "Host": "localhost",
         "User-Agent": "curl/7.43.0"
       },
-      "origin": "10.0.0.2,
-      "url": "http://example.org/get"
+      "origin": "10.0.0.1",
+      "url": "http://localhost/get"
     }
 
 The HTTP dispatch rules can be changed at runtime. From the `iex` REPL:
 
 ```elixir
 iex> Config.update(rules: [[host: "example.com", plug: {SomePlug, []}]])
+:ok
 ```
