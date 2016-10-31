@@ -16,13 +16,12 @@ defmodule Ballast.Config.Rule do
   end
 
   def to_route(rule = %__MODULE__{prefix: nil}) do
-    opts = rule.plug.init(rule.plug_opts)
-    opts = ProxyEndpoint.init(plug: {rule.plug, opts})
+    opts = ProxyEndpoint.init(plug: {rule.plug, rule.plug_opts})
     to_cowboy_route(rule.host, rule.path, opts)
   end
 
   def to_route(rule = %__MODULE__{}) do
-    opts = Prefix.init(path: rule.prefix, plug: {rule.plug, rule.plug_opts})
+    opts = [path: rule.prefix, plug: {rule.plug, rule.plug_opts}]
     opts = ProxyEndpoint.init(plug: {Prefix, opts})
     to_cowboy_route(rule.host, rule.path, opts)
   end

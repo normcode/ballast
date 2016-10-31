@@ -16,7 +16,10 @@ defmodule Ballast.ProxyEndpoint do
     Plug.Adapters.Cowboy.child_spec(scheme, listener_ref, plug_opts, cowboy_opts)
   end
 
-  def init(opts), do: Keyword.fetch!(opts, :plug)
+  def init(opts) do
+    {plug, opts} = Keyword.fetch!(opts, :plug)
+    {plug, plug.init(opts)}
+  end
 
   def call(conn, _plug = {mod, args}) do
     conn
