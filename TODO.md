@@ -1,10 +1,10 @@
 # TODO #
 
 - [ ] `mix test --seed 160583 --trace`
-- [ ] plug initialization
+- [x] plug initialization
 - [ ] routing rules
-  * [ ] path: prefix
-  * [ ] host: fixed (string, .suffix.domain)
+  * [x] path: prefix
+  * [ ] host: string, .suffix.domain
   * [ ] headers: values
   * [ ] DSL (?)
 - [ ] backends
