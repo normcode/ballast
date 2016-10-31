@@ -23,7 +23,7 @@ alias Ballast.Plug.Proxy
 config :ballast, [
   proxy_port: 8080,
   routes: [
-    [path: "/httpbin", prefix: "/httpbin"     # matches and removes URI prefix
+    [path: "/httpbin", prefix: "/httpbin",    # matches and removes URI prefix
      plug: {Proxy, [origin: "httpbin.org"]}],
     [host: "example.com",                     # matches HTTP `host` header
      plug: {Proxy, [origin: "127.0.0.1:4000"]}]
