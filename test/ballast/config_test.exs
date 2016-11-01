@@ -27,6 +27,13 @@ defmodule Ballast.ConfigTest do
       assert_cowboy_route(c, {~c"example.org", ~c"/test", Test.Plug, [option: :foo]})
     end
 
+    test "routes/1 ignores trailing slash", context do
+      rules = [[path: "/test/", plug: {Test.Plug, []}]]
+      assert {:ok, config} = start_link(context.test, rules: rules)
+      assert [a] = Config.routes(config)
+      assert_cowboy_route(a, {:_, ~c"/test", Test.Plug, []})
+    end
+
     test "routes/1 with prefix rule", context do
       rules = [[path: "/test/foo", prefix: "/test", plug: {Test.Plug, []}]]
       assert {:ok, config} = start_link(context.test, rules: rules)
