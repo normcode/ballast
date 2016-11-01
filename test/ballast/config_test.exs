@@ -27,13 +27,11 @@ defmodule Ballast.ConfigTest do
       assert_cowboy_route(c, {~c"example.org", ~c"/test", Test.Plug, [option: :foo]})
     end
 
-    test "route/1 with prefix rule", context do
-      rules = [[path: "/test", prefix: "/test", plug: {Test.Plug, []}],
-               [path: "/test/foo", prefix: "/test", plug: {Test.Plug, []}]]
+    test "routes/1 with prefix rule", context do
+      rules = [[path: "/test/foo", prefix: "/test", plug: {Test.Plug, []}]]
       assert {:ok, config} = start_link(context.test, rules: rules)
-      assert [a, b] = Config.routes(config)
-      assert_cowboy_route(a, {:_, ~c"/test", Prefix, Prefix.init([path: "/test", plug: {Test.Plug, []}])})
-      assert_cowboy_route(b, {:_, ~c"/test/foo", Prefix, Prefix.init([path: "/test", plug: {Test.Plug, []}])})
+      assert [a] = Config.routes(config)
+      assert_cowboy_route(a, {:_, ~c"/test/foo", Prefix, Prefix.init([path: "/test", plug: {Test.Plug, []}])})
     end
 
     defmodule InitializingPlug do
@@ -83,12 +81,20 @@ defmodule Ballast.ConfigTest do
     end
   end
 
-  defp assert_cowboy_route(route, {host, path, plug, plug_opts}) do
+  defp assert_cowboy_route(route, {host, :_, plug, plug_opts}) do
     assert route == {host,
-                     [{path,
+                     [{:_,
                        Plug.Adapters.Cowboy.Handler,
                        {Ballast.ProxyEndpoint, {plug, plug_opts}}}]}
   end
+
+  defp assert_cowboy_route(route, {host, path, plug, plug_opts}) do
+    assert route == {host,
+                     [{path ++ ~c"/[...]",
+                       Plug.Adapters.Cowboy.Handler,
+                       {Ballast.ProxyEndpoint, {plug, plug_opts}}}]}
+  end
+
 
   defp start_link(name, opts \\ []) do
     {:ok, manager} = GenEvent.start_link
