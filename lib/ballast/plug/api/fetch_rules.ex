@@ -4,7 +4,7 @@ defmodule Ballast.Plug.Api.FetchRules do
 
   def init(opts), do: opts
 
- def call(conn, opts) do
+  def call(conn, opts) do
     config = opts[:config]
     rules = Ballast.Config.rules(config)
     put_private(conn, :rules, rules)

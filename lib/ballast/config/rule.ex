@@ -8,7 +8,6 @@ defmodule Ballast.Config.Rule do
   alias Ballast.Plug.Prefix
   alias Ballast.ProxyEndpoint
 
-
   defstruct [host: :_, path: :_, prefix: nil, plug: @default_plug, plug_opts: @default_opts]
 
   def new(opts \\ []) do
@@ -28,8 +27,16 @@ defmodule Ballast.Config.Rule do
 
   @cowboy_handler Plug.Adapters.Cowboy.Handler
 
+  defp to_cowboy_route(host, :_, opts) do
+    {to_char_route(host), [{:_, @cowboy_handler, {ProxyEndpoint, opts}}]}
+  end
   defp to_cowboy_route(host, path, opts) do
-    {to_char_route(host), [{to_char_route(path), @cowboy_handler, {ProxyEndpoint, opts}}]}
+    wildcard_path = if String.ends_with?(path, "/") do
+      "[...]"
+    else
+      "/[...]"
+    end
+    {to_char_route(host), [{to_char_route(path <> wildcard_path), @cowboy_handler, {ProxyEndpoint, opts}}]}
   end
 
   defp to_char_route(nil), do: :_
