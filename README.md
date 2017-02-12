@@ -51,7 +51,7 @@ Start the application within the configured environment:
       "headers": {
         "Accept": "*/*",
         "Content-Length": "0",
-        "Host": "example.org",
+        "Host": "localhost",
         "User-Agent": "curl/7.43.0"
       },
       "origin": "10.0.0.1",
