@@ -2,6 +2,10 @@
 # and its dependencies with the aid of the Mix.Config module.
 use Mix.Config
 
+config :logger,
+  backends: [:console],
+  compile_time_purge_level: :info
+
 import_config "#{Mix.env}.exs"
 
 # This configuration is loaded before any dependency and is restricted
