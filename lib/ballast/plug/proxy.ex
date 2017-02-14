@@ -36,10 +36,12 @@ defmodule Ballast.Plug.Proxy do
 
   defp send_request(conn, opts = %__MODULE__{}) do
     method = request_method(conn.method)
-    uri = request_uri(conn, opts.origin)
+    uri = request_uri(opts.origin, conn)
+    headers = request_headers(conn)
     Logger.debug("Sending request: #{method} #{uri}")
+    Logger.debug("  headers: #{inspect headers}")
     response = opts.http_client.request(method, uri,
-      headers: request_headers(conn),
+      headers: headers,
       body: conn.assigns.body,
       ibrowse: [host_header: to_char_list(conn.host)],
       timeout: @default_timeout
@@ -59,7 +61,6 @@ defmodule Ballast.Plug.Proxy do
       %HTTPotion.ErrorResponse{message: "req_timedout"} ->
         resp(conn, 504, "")
       %HTTPotion.ErrorResponse{message: message} ->
-        require Logger
         Logger.error("Unexpected error response: #{inspect message}")
         resp(conn, 500, "")
     end
