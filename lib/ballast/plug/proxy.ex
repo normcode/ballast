@@ -1,4 +1,5 @@
 defmodule Ballast.Plug.Proxy do
+  require Logger
   import Plug.Conn
 
   defstruct [:origin,
@@ -34,9 +35,10 @@ defmodule Ballast.Plug.Proxy do
   end
 
   defp send_request(conn, opts = %__MODULE__{}) do
-    response = opts.http_client.request(
-      request_method(conn.method),
-      uri(conn, opts.origin),
+    method = request_method(conn.method)
+    uri = request_uri(conn, opts.origin)
+    Logger.debug("Sending request: #{method} #{uri}")
+    response = opts.http_client.request(method, uri,
       headers: request_headers(conn),
       body: conn.assigns.body,
       ibrowse: [host_header: to_char_list(conn.host)],
@@ -67,7 +69,7 @@ defmodule Ballast.Plug.Proxy do
     {to_string(header), to_string(value)}
   end
 
-  defp uri(conn, origin) do
+  defp request_uri(conn, origin) do
     case conn.query_string do
       "" ->
         "http://#{origin}#{conn.request_path}"
