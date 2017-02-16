@@ -35,8 +35,8 @@ defmodule Ballast.Plug.Proxy do
   end
 
   defp send_request(conn, opts = %__MODULE__{}) do
-    method = request_method(conn.method)
-    uri = request_uri(opts.origin, conn)
+    method = request_method(conn)
+    uri = request_uri(conn, opts.origin)
     headers = request_headers(conn)
     Logger.debug("Sending request: #{method} #{uri}")
     Logger.debug("  headers: #{inspect headers}")
@@ -87,8 +87,10 @@ defmodule Ballast.Plug.Proxy do
             "CONNECT", "OPTIONS", "TRACE", "PATCH"]
 
   for method <- @methods do
-    defp request_method(unquote(method)) do
+    defp normalize_method(unquote(method)) do
       unquote(method |> String.downcase() |> String.to_atom())
     end
   end
+
+  defp request_method(conn), do: normalize_method(conn.method)
 end
