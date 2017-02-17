@@ -2,10 +2,7 @@ defmodule Ballast.Plug.Proxy do
   require Logger
   import Plug.Conn
 
-  defstruct [:origin,
-             http_client: HTTPotion]
-
-  @default_timeout 5_000 # in ms
+  defstruct [:origin, :client]
 
   def init(opts) do
     opts
@@ -16,6 +13,7 @@ defmodule Ballast.Plug.Proxy do
   def call(conn, opts = %__MODULE__{}) do
     conn
     |> read_request_body(opts)
+    |> create_request(opts)
     |> send_request(opts)
     |> send_response(opts)
   end
@@ -26,6 +24,7 @@ defmodule Ballast.Plug.Proxy do
   end
 
   defp initialize_options(opts) do
+    opts = Keyword.put_new(opts, :client, Ballast.Client.build(opts))
     struct!(__MODULE__, opts)
   end
 
@@ -34,53 +33,53 @@ defmodule Ballast.Plug.Proxy do
     assign(conn, :body, body)
   end
 
+  defp create_request(conn, _opts) do
+    conn
+    |> fetch_query_params()
+    |> create_request()
+  end
+
+  defp create_request(conn) do
+    request = [
+      method: request_method(conn),
+      url: conn.request_path,
+      query: conn.query_params,
+      headers: conn.req_headers,
+      body: conn.assigns.body
+    ]
+    assign(conn, :request, request)
+  end
+
   defp send_request(conn, opts = %__MODULE__{}) do
-    method = request_method(conn)
-    uri = request_uri(conn, opts.origin)
-    headers = request_headers(conn)
-    Logger.debug("Sending request: #{method} #{uri}")
-    Logger.debug("  headers: #{inspect headers}")
-    response = opts.http_client.request(method, uri,
-      headers: headers,
-      body: conn.assigns.body,
-      ibrowse: [host_header: to_char_list(conn.host)],
-      timeout: @default_timeout
-    )
-    assign(conn, :response, response)
+    try do
+      response = Ballast.Client.request(opts.client, conn.assigns.request)
+      assign(conn, :response, response)
+    rescue
+      error in Tesla.Error ->
+        assign(conn, :error, error)
+    end
   end
 
   defp send_response(conn = %Plug.Conn{}, _opts) do
-    case conn.assigns.response do
-      %HTTPotion.Response{body: body, status_code: status, headers: headers} ->
-        resp_headers = Enum.into(headers.hdrs, [], &convert_header/1)
+    cond do
+      error = conn.assigns[:error] ->
+        send_error(conn, error)
+      resp = conn.assigns[:response] ->
         conn
-        |> merge_resp_headers(resp_headers)
-        |> resp(status, body)
-      %HTTPotion.ErrorResponse{message: "econnrefused"} ->
-        resp(conn, 503, "")
-      %HTTPotion.ErrorResponse{message: "req_timedout"} ->
-        resp(conn, 504, "")
-      %HTTPotion.ErrorResponse{message: message} ->
-        Logger.error("Unexpected error response: #{inspect message}")
-        resp(conn, 500, "")
+        |> merge_resp_headers(resp.headers)
+        |> resp(resp.status, resp.body)
     end
   end
 
-  defp convert_header({header, value}) do
-    {to_string(header), to_string(value)}
+  defp send_error(conn, %{reason: :timeout}) do
+    resp(conn, 504, "")
   end
-
-  defp request_uri(conn, origin) do
-    case conn.query_string do
-      "" ->
-        "http://#{origin}#{conn.request_path}"
-      query_string ->
-        "http://#{origin}#{conn.request_path}?#{query_string}"
-    end
+  defp send_error(conn, %{reason: :econnrefused}) do
+    resp(conn, 503, "")
   end
-
-  defp request_headers(%Plug.Conn{req_headers: headers}) do
-    Enum.filter(headers, &(elem(&1, 0) != "host"))
+  defp send_error(conn, %{message: message}) do
+    Logger.error("Unexpected upstream error: #{message}")
+    resp(conn, 500, "")
   end
 
   @methods ["GET", "HEAD", "POST", "PUT", "DELETE",
