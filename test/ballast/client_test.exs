@@ -50,6 +50,21 @@ defmodule Ballast.ClientTest do
     Client.request(client, request)
   end
 
+  test "sends headers", _ctx = %{bypass: origin, client: client} do
+    Bypass.expect(origin, fn conn ->
+      assert Enum.sort(conn.req_headers) == [{"foo", "Baz"},
+                                             {"host", "localhost:#{origin.port}"},
+                                             {"user-agent", "ballast/1.0.0"},
+                                             # cannot disable default u-a with hackney so
+                                             # set a default
+                                            ]
+    end)
+    request = [method: :get,
+               url: "/",
+               headers: [{"Foo", "Baz"}]]
+    Client.request(client, request)
+  end
+
   defp expect_request(ctx, method, request_path, query_string, body) do
     Bypass.expect(ctx.bypass, fn conn ->
       assert conn.method == method
