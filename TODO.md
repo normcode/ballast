@@ -19,3 +19,4 @@
  - [ ] configuration
  - [ ] status
  - [ ] maintenance mode
+- [ ] streaming bodies
