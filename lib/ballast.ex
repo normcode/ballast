@@ -17,9 +17,9 @@ defmodule Ballast do
   end
 
   defp config_args do
-    [config_name, [rules: routes(),
-                   listener: listener_ref(),
-                   update_handler: update_handler()]]
+    [config_name(), [rules: routes(),
+                     listener: listener_ref(),
+                     update_handler: update_handler()]]
   end
 
   defp api_args do

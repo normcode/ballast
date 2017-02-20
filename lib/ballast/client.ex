@@ -18,7 +18,9 @@ defmodule Ballast.Client do
     |> Tesla.run(next)
   end
 
-  def default_user_agent(env = %Tesla.Env{headers: %{}}, _opts), do: %{env | headers: []}
+  def default_user_agent(env = %Tesla.Env{headers: %{}}, _opts) do
+    %{env | headers: []}
+  end
   def default_user_agent(env = %Tesla.Env{}, _opts) do
     headers = if List.keymember?(env.headers, "user-agent", 0) do
       env.headers
