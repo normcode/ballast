@@ -1,6 +1,6 @@
 defmodule Ballast.Client do
 
-  use Tesla, only: [:request], docs: false
+  use Tesla, only: [], docs: false
 
   adapter :hackney
 

@@ -1,5 +1,4 @@
 defmodule Ballast.Plug.Proxy do
-  require Logger
 
   import Plug.Conn, only: [assign: 3,
                            fetch_query_params: 1,
@@ -47,7 +46,7 @@ defmodule Ballast.Plug.Proxy do
 
   defp create_request(conn) do
     request = [
-      method: request_method(conn),
+      method: conn.method,
       url: conn.request_path,
       query: conn.query_params,
       headers: conn.req_headers,
@@ -66,35 +65,29 @@ defmodule Ballast.Plug.Proxy do
     end
   end
 
-  defp send_response({:error, conn = %Plug.Conn{}, error}, _opts) do
-    send_error(conn, error)
-  end
   defp send_response({:ok, conn = %Plug.Conn{}, resp}, _opts) do
     conn
     |> merge_resp_headers(resp.headers)
     |> resp(resp.status, resp.body)
   end
 
-  defp send_error(conn, %{reason: :timeout}) do
+  defp send_response({:error, conn = %Plug.Conn{}, error}, _opts) do
+    resp_error(conn, error)
+  end
+
+  defp resp_error(conn, %{reason: :timeout}) do
     resp(conn, 504, "")
   end
-  defp send_error(conn, %{reason: reason})
+
+  defp resp_error(conn, %{reason: reason})
   when reason in [:connect_timeout, :econnrefused] do
     resp(conn, 503, "")
   end
-  defp send_error(conn, %{message: message}) do
+
+  defp resp_error(conn, %{message: message}) do
+    require Logger
     Logger.error("Unexpected upstream error: #{message}")
     resp(conn, 500, "")
   end
 
-  @methods ["GET", "HEAD", "POST", "PUT", "DELETE",
-            "CONNECT", "OPTIONS", "TRACE", "PATCH"]
-
-  for method <- @methods do
-    defp normalize_method(unquote(method)) do
-      unquote(method |> String.downcase() |> String.to_atom())
-    end
-  end
-
-  defp request_method(conn), do: normalize_method(conn.method)
 end
