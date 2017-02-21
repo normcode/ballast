@@ -16,35 +16,58 @@ defmodule Ballast.Plug.ProxyTest do
     end
 
     test "sets state (ie does not send response)", ctx do
-      mock_response(ctx)
+      Bypass.expect(ctx.bypass, fn conn ->
+        Plug.Conn.send_resp(conn, 418, "")
+      end)
       conn = call_proxy(ctx)
       assert conn.state == :set
     end
 
-    test "sets state on econnrefused", ctx do
+    test "sets status on econnrefused", ctx do
       Bypass.down(ctx.bypass)
       conn = call_proxy(ctx)
       assert conn.status == 503
       assert conn.state == :set
     end
 
-    defmodule TimeoutClient do
+    defmodule RaiseErrorClient do
       use Tesla
-      def build() do
-        Tesla.build_client([{__MODULE__, []}])
+      def build(error) do
+        Tesla.build_client([{__MODULE__, error}])
       end
-
-      def call(_env, _next, _opts) do
-        raise %Tesla.Error{message: "adapter error: timeout",
-                           reason: :timeout}
+      def call(_env, _next, opts) do
+        raise %Tesla.Error{message: "adapter error: #{inspect(opts)}",
+                           reason: opts}
       end
     end
 
-    test "sets state on request timeout", ctx do
-      plug = Proxy.init([origin: ctx.origin, client: TimeoutClient.build])
+    test "sets status on request timeout", ctx do
+      plug = Proxy.init([origin: ctx.origin,
+                         client: RaiseErrorClient.build(:timeout)])
       conn = call_proxy(%{ctx | plug: plug})
       assert conn.status == 504
-      assert %Tesla.Error{reason: :timeout} = conn.assigns.error
+      assert conn.state == :set
+    end
+
+    test "sets status on connect timeout", ctx do
+      plug = Proxy.init([origin: ctx.origin,
+                         client: RaiseErrorClient.build(:connect_timeout)])
+      conn = call_proxy(%{ctx | plug: plug})
+      assert conn.status == 503
+      assert conn.state == :set
+    end
+
+    defmodule TeapotClient do
+      use Tesla
+      def call(env, _next, _opts) do
+        %{env | status: 418}
+      end
+    end
+
+    test "forwards status", ctx do
+      plug = Proxy.init([origin: ctx.origin, client: TeapotClient])
+      conn = call_proxy(%{ctx | plug: plug})
+      assert conn.status == 418
       assert conn.state == :set
     end
 
@@ -89,12 +112,6 @@ defmodule Ballast.Plug.ProxyTest do
     [bypass: plug]
   end
 
-  defp mock_response(ctx) do
-    Bypass.expect(ctx.bypass, fn conn ->
-      Plug.Conn.send_resp(conn, 418, "")
-    end)
-  end
-
   defp origin(%{bypass: bypass}) do
     [origin: "http://localhost:#{bypass.port}"]
   end
@@ -102,4 +119,5 @@ defmodule Ballast.Plug.ProxyTest do
   defp plug(%{origin: origin}) do
     [plug: Proxy.init(origin: origin)]
   end
+
 end

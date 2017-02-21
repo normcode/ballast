@@ -53,28 +53,27 @@ defmodule Ballast.Plug.Proxy do
   defp send_request(conn, opts = %__MODULE__{}) do
     try do
       response = Ballast.Client.request(opts.client, conn.assigns.request)
-      assign(conn, :response, response)
+      {:ok, conn, response}
     rescue
       error in Tesla.Error ->
-        assign(conn, :error, error)
+        {:error, conn, error}
     end
   end
 
-  defp send_response(conn = %Plug.Conn{}, _opts) do
-    cond do
-      error = conn.assigns[:error] ->
-        send_error(conn, error)
-      resp = conn.assigns[:response] ->
-        conn
-        |> merge_resp_headers(resp.headers)
-        |> resp(resp.status, resp.body)
-    end
+  defp send_response({:error, conn = %Plug.Conn{}, error}, _opts) do
+    send_error(conn, error)
+  end
+  defp send_response({:ok, conn = %Plug.Conn{}, resp}, _opts) do
+    conn
+    |> merge_resp_headers(resp.headers)
+    |> resp(resp.status, resp.body)
   end
 
   defp send_error(conn, %{reason: :timeout}) do
     resp(conn, 504, "")
   end
-  defp send_error(conn, %{reason: :econnrefused}) do
+  defp send_error(conn, %{reason: reason})
+  when reason in [:connect_timeout, :econnrefused] do
     resp(conn, 503, "")
   end
   defp send_error(conn, %{message: message}) do
