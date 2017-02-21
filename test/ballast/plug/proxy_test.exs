@@ -80,6 +80,14 @@ defmodule Ballast.Plug.ProxyTest do
       conn = call_proxy(ctx)
       assert conn.status == 201
     end
+
+    test "returns body", ctx do
+      Bypass.expect(ctx.bypass, fn conn ->
+        Plug.Conn.send_resp(conn, 200, "test body")
+      end)
+      conn = call_proxy(ctx)
+      assert conn.resp_body == "test body"
+    end
   end
 
   defp call_proxy(ctx, opts \\ []) do
