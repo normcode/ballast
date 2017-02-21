@@ -61,7 +61,7 @@ defmodule Ballast.Plug.Proxy do
       response = Ballast.Client.request(opts.client, conn.assigns.request)
       {:ok, conn, response}
     rescue
-      error in Tesla.Error ->
+      error in [Tesla.Error] ->
         {:error, conn, error}
     end
   end
