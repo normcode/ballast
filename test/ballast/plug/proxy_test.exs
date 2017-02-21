@@ -57,20 +57,6 @@ defmodule Ballast.Plug.ProxyTest do
       assert conn.state == :set
     end
 
-    defmodule TeapotClient do
-      use Tesla
-      def call(env, _next, _opts) do
-        %{env | status: 418}
-      end
-    end
-
-    test "forwards status", ctx do
-      plug = Proxy.init([origin: ctx.origin, client: TeapotClient])
-      conn = call_proxy(%{ctx | plug: plug})
-      assert conn.status == 418
-      assert conn.state == :set
-    end
-
     test "proxies POST to origin", ctx do
       Bypass.expect(ctx.bypass, fn conn ->
         assert conn.method == "POST"
