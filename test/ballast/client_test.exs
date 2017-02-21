@@ -1,5 +1,5 @@
 defmodule Ballast.ClientTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
   import Plug.Conn
   alias Ballast.Client
 
@@ -52,17 +52,33 @@ defmodule Ballast.ClientTest do
 
   test "sends headers", _ctx = %{bypass: origin, client: client} do
     Bypass.expect(origin, fn conn ->
-      assert Enum.sort(conn.req_headers) == [{"foo", "Baz"},
-                                             {"host", "localhost:#{origin.port}"},
-                                             {"user-agent", "ballast/1.0.0"},
-                                             # cannot disable default u-a with hackney so
-                                             # set a default
-                                            ]
+      assert Enum.sort(conn.req_headers) == [
+        {"foo", "Baz"},
+        {"host", "localhost:#{origin.port}"},
+        {"user-agent", "ballast/1.0.0"},
+        # cannot disable default u-a with hackney so
+        # set a default
+      ]
     end)
     request = [method: :get,
                url: "/",
                headers: [{"Foo", "Baz"}]]
     Client.request(client, request)
+  end
+
+  test "sets client timeout with option", _ctx = %{bypass: origin,
+                                                   client: client} do
+    parent = self()
+    Bypass.expect(origin, fn conn ->
+      :timer.sleep(100)
+      send(parent, :slow_reply)
+      send_resp(conn, 200, "slow reply")
+    end)
+    request = [method: :get,
+               url: "/",
+               opts: [recv_timeout: 10] ] # in ms
+    assert_raise Tesla.Error, fn -> Client.request(client, request) end
+    assert_receive :slow_reply, 1000
   end
 
   defp expect_request(ctx, method, request_path, query_string, body) do
