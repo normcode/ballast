@@ -1,6 +1,6 @@
 defmodule Ballast.ClientTest do
   use ExUnit.Case, async: false
-  import Plug.Conn
+
   alias Ballast.Client
 
   setup [:bypass, :client]
@@ -72,7 +72,7 @@ defmodule Ballast.ClientTest do
     Bypass.expect(origin, fn conn ->
       :timer.sleep(100)
       send(parent, :slow_reply)
-      send_resp(conn, 200, "slow reply")
+      Plug.Conn.send_resp(conn, 200, "slow reply")
     end)
     request = [method: :get,
                url: "/",
@@ -88,7 +88,7 @@ defmodule Ballast.ClientTest do
       assert conn.query_string == query_string
       {:ok, req_body, conn} = Plug.Conn.read_body(conn)
       assert req_body == body
-      send_resp(conn, 200, "")
+      Plug.Conn.send_resp(conn, 200, "")
     end)
   end
 

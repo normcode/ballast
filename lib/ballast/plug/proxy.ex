@@ -1,6 +1,11 @@
 defmodule Ballast.Plug.Proxy do
   require Logger
-  import Plug.Conn
+
+  import Plug.Conn, only: [assign: 3,
+                           fetch_query_params: 1,
+                           merge_resp_headers: 2,
+                           resp: 3,
+                           read_body: 1]
 
   defstruct [:origin, :client]
 
@@ -24,7 +29,8 @@ defmodule Ballast.Plug.Proxy do
   end
 
   defp initialize_options(opts) do
-    opts = Keyword.put_new(opts, :client, Ballast.Client.build(opts))
+    client = Ballast.Client.build(opts)
+    opts = Keyword.put_new(opts, :client, client)
     struct!(__MODULE__, opts)
   end
 
