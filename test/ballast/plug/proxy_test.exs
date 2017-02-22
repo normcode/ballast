@@ -73,6 +73,22 @@ defmodule Ballast.Plug.ProxyTest do
       call_proxy(ctx, path: "/test")
     end
 
+    test "proxies query string", ctx do
+      Bypass.expect(ctx.bypass, fn conn ->
+        assert conn.query_string == "foo=bar&foo=baz"
+        Plug.Conn.send_resp(conn, 200, "")
+      end)
+      call_proxy(ctx, query: "foo=bar&foo=baz")
+    end
+
+    test "proxies strange query string", ctx do
+      Bypass.expect(ctx.bypass, fn conn ->
+        assert conn.query_string == "foo=bar&foo"
+        Plug.Conn.send_resp(conn, 200, "")
+      end)
+      call_proxy(ctx, query: "foo=bar&foo")
+    end
+
     test "returns status", ctx do
       Bypass.expect(ctx.bypass, fn conn ->
         Plug.Conn.send_resp(conn, 201, "")
@@ -94,9 +110,13 @@ defmodule Ballast.Plug.ProxyTest do
     host   = Keyword.get(opts, :host, "example.org")
     method = Keyword.get(opts, :method, :get)
     path   = Keyword.get(opts, :path, "/")
+    query  = Keyword.get(opts, :query, "")
+    require Logger
+    Logger.debug(inspect query)
     url = ctx.origin <> path
     method
     |> conn(url)
+    |> Map.put(:query_string, query)
     |> Map.put(:host, host)
     |> Proxy.call(ctx.plug)
   end

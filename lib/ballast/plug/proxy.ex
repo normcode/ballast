@@ -1,7 +1,6 @@
 defmodule Ballast.Plug.Proxy do
 
   import Plug.Conn, only: [assign: 3,
-                           fetch_query_params: 1,
                            merge_resp_headers: 2,
                            resp: 3,
                            read_body: 1]
@@ -39,16 +38,9 @@ defmodule Ballast.Plug.Proxy do
   end
 
   defp create_request(conn, _opts) do
-    conn
-    |> fetch_query_params()
-    |> create_request()
-  end
-
-  defp create_request(conn) do
     request = [
       method: conn.method,
-      url: conn.request_path,
-      query: conn.query_params,
+      url: maybe_append_query_string(conn),
       headers: conn.req_headers,
       body: conn.assigns.body
     ]
@@ -88,6 +80,13 @@ defmodule Ballast.Plug.Proxy do
     require Logger
     Logger.error("Unexpected upstream error: #{message}")
     resp(conn, 500, "")
+  end
+
+  defp maybe_append_query_string(conn = %Plug.Conn{query_string: ""}) do
+    conn.request_path
+  end
+  defp maybe_append_query_string(conn = %Plug.Conn{}) do
+    conn.request_path <> "?" <> conn.query_string
   end
 
 end
