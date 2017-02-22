@@ -23,10 +23,9 @@ alias Ballast.Plug.Proxy
 config :ballast, [
   proxy_port: 8080,
   routes: [
-    [path: "/httpbin", prefix: "/httpbin",    # matches and removes URI prefix
-     plug: {Proxy, [origin: "httpbin.org"]}],
-    [host: "example.com",                     # matches HTTP `host` header
-     plug: {Proxy, [origin: "127.0.0.1:4000"]}]
+    [path:   "/httpbin", # matches path
+     prefix: "/httpbin", # removes path prefix
+     plug:   {Proxy, [origin: "httpbin.org"]}], # request is proxied to origin
   ]
 ]
 ```
@@ -34,7 +33,7 @@ config :ballast, [
 Start the application within the configured environment:
 
     $ MIX_ENV=proxy iex -S mix
-    $ curl -H "Host: example.com" "localhost:8080/get -i
+    $ curl localhost:8080/httpbin/get -i
     HTTP/1.1 200 OK
     cache-control: max-age=0, private, must-revalidate
     access-control-allow-credentials: true
@@ -51,11 +50,11 @@ Start the application within the configured environment:
       "headers": {
         "Accept": "*/*",
         "Content-Length": "0",
-        "Host": "localhost",
+        "Host": "httpbin.org",
         "User-Agent": "curl/7.43.0"
       },
       "origin": "10.0.0.1",
-      "url": "http://localhost/get"
+      "url": "http://httpbin.org/get"
     }
 
 The HTTP dispatch rules can be changed at runtime. From the `iex` REPL:
