@@ -63,3 +63,61 @@ The HTTP dispatch rules can be changed at runtime. From the `iex` REPL:
 iex> Config.update(rules: [[host: "example.com", plug: {SomePlug, []}]])
 :ok
 ```
+
+## Deploying to Heroku ##
+
+Create a configuration file, `config/heroku.exs`:
+
+```elixir
+use Mix.Config
+
+config :logger,
+  backends: [:console],
+  compile_time_purge_level: :debug
+
+config :ballast, port: System.get_env("PORT")
+config :ballast, routes: [
+  [path: "/debug", prefix: "/debug", plug: {Ballast.Plug.Proxy, [origin: "httpbin.org"]}],
+]
+```
+
+Note that you cannot route using the `Host` header because Heroku uses that as well.
+
+Using the `heroku` CLI, set the buildpack and the remote:
+
+    $ heroku buildpacks:set https://github.com/HashNuke/heroku-buildpack-elixir
+    $ heroku git:remote -a twin-miracles-12345
+
+And push to deploy:
+
+    $ git push heroku master
+
+Send a request to the dyno:
+
+    $ curl https://twin-miracles-12345.herokuapp.com -i
+    curl https://hidden-harbor-94209.herokuapp.com/debug/get -i
+    HTTP/1.1 200 OK
+    Connection: keep-alive
+    Cache-Control: max-age=0, private, must-revalidate
+    Access-Control-Allow-Credentials: true
+    Access-Control-Allow-Origin: *
+    Content-Length: 344
+    Content-Type: application/json
+    Date: Fri, 03 Mar 2017 23:19:14 GMT
+    Server: nginx
+    Via: 1.1 ballast, 1.1 vegur
+
+    {
+      "args": {},
+      "headers": {
+        "Accept": "*/*",
+        "Connect-Time": "0",
+        "Host": "httpbin.org",
+        "Total-Route-Time": "0",
+        "User-Agent": "curl/7.43.0",
+        "Via": "1.1 vegur",
+        "X-Request-Id": "cd4666e4-e3ce-458a-ba67-5f97dbbddef5"
+      },
+      "origin": "76.76.76.76, 54.224.168.123",
+      "url": "https://httpbin.org/get"
+    }
