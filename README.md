@@ -95,7 +95,7 @@ And push to deploy:
 Send a request to the dyno:
 
     $ curl https://twin-miracles-12345.herokuapp.com -i
-    curl https://hidden-harbor-94209.herokuapp.com/debug/get -i
+    curl https://twin-mircales-12345.herokuapp.com/debug/get -i
     HTTP/1.1 200 OK
     Connection: keep-alive
     Cache-Control: max-age=0, private, must-revalidate
