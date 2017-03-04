@@ -5,7 +5,7 @@ config :logger,
   compile_time_purge_level: :debug
 
 config :ballast,
-  proxy_port: String.to_integer(System.get_env("PORT") || "8080"),
+  proxy_port: System.get_env("PORT"),
   routes: [
     [path: "/debug", prefix: "/debug", plug: {Ballast.Plug.Proxy, [origin: "httpbin.org"]}],
   ]

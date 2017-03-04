@@ -41,6 +41,10 @@ defmodule Ballast do
   defp listener_ref(), do: Application.get_env(:ballast, :listener_ref, Ballast.ProxyEndpoint.HTTP)
   defp update_handler(), do: {Ballast.ProxyUpdateHandler, [listener: listener_ref()]}
   defp event_manager_name(), do: Ballast.ProxyEndpoint.Manager
-  defp proxy_port(), do: Application.get_env(:ballast, :proxy_port, 8080)
-  defp api_port(), do: Application.get_env(:ballast, :api_port, 5000)
+  defp proxy_port(), do: Application.get_env(:ballast, :proxy_port, 8080) |> port()
+  defp api_port(), do: Application.get_env(:ballast, :api_port, 5000) |> port()
+
+  def port(port) when is_integer(port), do: port
+  def port(port) when is_binary(port), do: String.to_integer(port)
+  def port(_), do: throw :badarg
 end
