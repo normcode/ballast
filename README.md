@@ -26,6 +26,8 @@ config :ballast, [
     [path:   "/httpbin", # matches path
      prefix: "/httpbin", # removes path prefix
      plug:   {Proxy, [origin: "httpbin.org"]}], # request is proxied to origin
+    [host: "example.org", # matches host header, exactly
+     plug:   {Proxy, [origin: "localhost:4000"]}]
   ]
 ]
 ```
@@ -81,7 +83,8 @@ config :ballast, routes: [
 ]
 ```
 
-Note that you cannot route using the `Host` header because Heroku uses that as well.
+Note that you cannot route using the `Host` header because Heroku uses that as
+well for routing to dynos so this is of limited value.
 
 Using the `heroku` CLI, set the buildpack and the remote:
 
