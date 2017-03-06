@@ -46,5 +46,10 @@ defmodule Ballast do
 
   def port(port) when is_integer(port), do: port
   def port(port) when is_binary(port), do: String.to_integer(port)
+  def port({:system, varname}) when is_binary(varname) do
+    varname
+    |> System.get_env()
+    |> String.to_integer()
+  end
   def port(_), do: throw :badarg
 end

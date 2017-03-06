@@ -77,10 +77,11 @@ config :logger,
   backends: [:console],
   compile_time_purge_level: :debug
 
-config :ballast, port: System.get_env("PORT")
-config :ballast, routes: [
-  [path: "/debug", prefix: "/debug", plug: {Ballast.Plug.Proxy, [origin: "httpbin.org"]}],
-]
+config :ballast, port: {:system, "PORT"},
+                 routes: [
+                   [path: "/debug", prefix: "/debug",
+                    plug: {Ballast.Plug.Proxy, [origin: "httpbin.org"]}],
+                 ]
 ```
 
 Note that you cannot route using the `Host` header because Heroku uses that as
