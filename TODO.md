@@ -1,24 +1,26 @@
 # TODO #
 
-- [ ] `mix test --seed 160583 --trace`
-- [ ] host header for client
-- [x] user-agent duplication
-- [x] plug initialization
+- [ ] set host header from client
 - [ ] routing rules
-  * [x] path: prefix
-  * [ ] host: string, .suffix.domain
-  * [ ] headers: values
-  * [ ] DSL (?)
+    * [x] host match
+    * [x] path: prefix
+    * [ ] host .domain.suffix
+    * [ ] header match
+    * [ ] DSL (?)
 - [ ] backends
-  * [ ] load balancer
-  * [ ] health checks
-  * [ ] maintenance mode
-  * [ ] sticky sessions
-- [ ] header mod
-- [ ] url mod
-- [ ] embedded plug
+    * [ ] load balancer
+    * [ ] health checks
+    * [ ] maintenance mode
+    * [ ] sticky sessions
 - [ ] API
- - [ ] configuration
- - [ ] status
- - [ ] maintenance mode
+    * [ ] configuration
+    * [ ] status
+    * [ ] maintenance mode
+- [ ] `mix test --seed 160583 --trace`
+- [ ] middlewares
+    * [ ] header mod
+    * [ ] url mod
+    * [ ] embedded plug
 - [ ] streaming bodies
+- [x] plug initialization
+- [x] user-agent duplication
