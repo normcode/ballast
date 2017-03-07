@@ -1,6 +1,8 @@
 # TODO #
 
 - [ ] `mix test --seed 160583 --trace`
+- [ ] host header for client
+- [x] user-agent duplication
 - [x] plug initialization
 - [ ] routing rules
   * [x] path: prefix
