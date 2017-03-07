@@ -21,7 +21,7 @@ defmodule Ballast.Mixfile do
       {:plug, "~> 1.2"},
       {:poison, "~> 3.0"},
       {:tesla, "~> 0.6.0"},
-      {:hackney, "~> 1.6"},
+      {:hackney, "~> 1.7", override: true},
       {:bypass, "~> 0.5.1", only: :test},
       {:mix_test_watch, "~> 0.2", only: :dev},
     ]
